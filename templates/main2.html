@@ -22,11 +22,11 @@
 </head>
 
 <body>
-    <form class="form-group" action="{% url 'Reco:showRest' %}" method="POST">
+    <form class="form-group" action="{% url 'Reco:showMenu' %}" method="POST">
         {% csrf_token %}
         <select name="restaurant" id="select_restaurant" >
-            {% for t in rest %}
-            <option value={{t.restaurantId}}>{{t.name}}</option>
+            {% for t in menu %}
+            <option value={{t.itemId}}>{{t.name}}</option>
             {% endfor %}
         </select>
         <button type="submit">Submit</button>

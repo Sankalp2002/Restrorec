@@ -84,23 +84,23 @@ class RecoUser(models.Model):
 
 class Restaurant(models.Model):
     restaurantId = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=64)
     address = models.CharField(max_length=128)
-    cuisine = models.CharField(max_length=32)
+    cuisine = models.CharField(max_length=64)
     rating = models.FloatField()
-    totalRatings = models.CharField(max_length=32)
+    totalRatings = models.CharField(max_length=64)
 
     def __str__(self):
         return self.name
 
 class menuItem(models.Model):
     itemId = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=32)
-    description = models.CharField(max_length=128)
+    name = models.TextField()
+    description = models.TextField(max_length=512)
     price = models.IntegerField()
     rating = models.FloatField()
-    category = models.CharField(max_length=32)
-    diet = models.CharField(max_length=32)
+    category = models.CharField(max_length=128)
+    diet = models.CharField(max_length=64)
     restaurantId = models.ForeignKey(Restaurant, on_delete=models.CASCADE, help_text="Enter ID")
     def __str__(self):
         return self.name

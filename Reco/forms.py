@@ -1,9 +1,10 @@
 from django import forms
 #from django.db import models
-from Reco.models import RecoUser
+from Reco.models import RecoUser,Restaurant,menuItem
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
+from Reco.models import RecoUser,Restaurant,menuItem
 
 class userRegisterFormA(forms.ModelForm):
     password=forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
@@ -55,5 +56,10 @@ class userRegisterFormB(forms.ModelForm):
         return data
 
     class Meta():
-        model=Doctor
+        model=RecoUser
         fields=('name','age','sex','address','phone','diet','region','state','flavour','ingredient')
+
+class restForm(forms.ModelForm):
+    class Meta():
+        model=menuItem
+        fields=('restaurantId',)
