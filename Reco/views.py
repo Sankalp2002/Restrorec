@@ -23,9 +23,43 @@ from django.core.validators import ValidationError,validate_email
 # from django.conf import settings
 # from settings import STATIC_DIR
 # Create your views here.
+def foodfun(fname):
+    df= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    food=[fname,-1,-1,-1,-1,-1]
+    df.loc[len(df)] = food
+    df['name'] = df['name'].str.lower()              #lower chars
+    df['name'] = df['name'].apply( lambda text: text.translate(str.maketrans('', '', string.punctuation)))
+    STOPWORDS = set(stopwords.words('english'))  # loading stopwords of english
+    df['name'] = df['name'].apply(lambda text: " ".join([word for word in str(text).split() if word not in STOPWORDS]))
 
+    tfidf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(df['name'])                #vectorise the description and calculate tfidf values
 
-def preprocessing(selected_dish):
+    cosine_similarities = linear_kernel(tfidf_matrix, tfidf_matrix)      
+    idx=len(df)-1
+
+    score_series = pd.Series(cosine_similarities[idx]).sort_values(
+        ascending=False)  # retriving values with maximum cosine similarity on the basis of index
+
+    top_index = list(score_series.iloc[1:2].index)[0]
+    top_score=list(score_series.iloc[1:2])[0]
+
+    if top_score>=0.5:
+        return top_index
+    else:
+        return -1
+
+def getUser(request):
+    u = request.user
+    uid=u.id
+    ru=RecoUser.objects.get(RUser_id=uid)
+    # print(type(ru.ingredient))
+    # print(type(ru.diet))
+    # type(ru.ingredient)
+    desc=[ru.ingredient,ru.diet,ru.flavour,ru.state,ru.region]
+    return desc
+
+def model1(selected_dish):
     nltk.download('stopwords')
     all_rest=Restaurant.objects.all()
     all_item=menuItem.objects.all()
@@ -162,9 +196,171 @@ def preprocessing(selected_dish):
         i = i+1
         print(templist)
         dishes_details.append(templist)
+    return dishes_details
 
-    
-    
+def model2(selected_dish,request):
+    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    nltk.download('stopwords')
+    all_rest=Restaurant.objects.all()
+    all_item=menuItem.objects.all()
+    all_items=[]
+    all_rests=[]
+    for r in all_rest:
+        t=[r.name,r.rating,r.cuisine,r.address,r.totalRatings]
+        all_rests.append(t)
+    for r in all_item:
+        t=[r.category,r.name,r.price,r.description,r.diet,r.rating,r.restaurantId_id]
+        all_items.append(t)
+
+    df=pd.DataFrame(all_items,columns=['Category', 'Item Name','Price','Description','Veg/Non-veg','Rating','Restaurant Index'])
+    df_rest=pd.DataFrame(all_rests,columns=['Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
+    print(df.dtypes)
+    print(df_rest.dtypes)
+    df['Description'] = df['Description'].str.lower()
+    df['Description'] = df['Description'].apply(  # removing punctuation with empty string
+        lambda text: text.translate(str.maketrans('', '', string.punctuation)))
+
+    STOPWORDS = set(stopwords.words('english'))  # loading stopwords of english
+    df['Description'] = df['Description'].apply(lambda text: " ".join(  # remving stopwords from description
+        [word for word in str(text).split() if word not in STOPWORDS]))
+
+    tfidf = TfidfVectorizer(analyzer='word', ngram_range=(
+    1, 2), min_df=0, stop_words='english')
+    # vectorise the description and calculate tfidf values
+    tfidf_matrix = tfidf.fit_transform(df['Description'])
+
+    # calculte correlation matrix of cosine similarity on the basis of tf idf
+    cosine_similarities = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    rdishes = list()               # recommended dishes list
+
+    idx = selected_dish  # getting index number of row
+
+    score_series = pd.Series(cosine_similarities[idx]).sort_values(
+        ascending=False)  # retriving values with maximum cosine similarity on the basis of index
+
+    # indices of top 30  dishes
+    # first position will be for dishes itself
+    top10 = list(score_series.iloc[1:31].index)
+
+    # print(top10)
+    ntop10 = []
+
+    for each in top10:
+        if(each != idx):
+            # appending tuple of (item name,restaurant index) to rdishes
+            if (df.iloc[each, [1]][0], df.iloc[each, [6]][0]) not in rdishes:
+                rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0]))
+                ntop10.append(each)
+
+    # st.write(ntop10)
+    # retrieving veg/nonveg of recommended list
+    rveg = df.iloc[idx, [4]][0]
+
+    # retrieving category of recommended list
+    rcat = df.iloc[idx, [0]][0]
+    rprice = df.iloc[idx, [2]][0]
+    score = list()
+    for nindex in ntop10:
+        tempscore = 0
+        top_index=foodfun(df.iloc[nindex,[1]][0])
+        if top_index!=-1:
+            user=getUser(request)
+            user=[f.lower() for f in user]
+            food=list(df_food.iloc[top_index])
+            print(food)
+            print(type(food[0]))
+            print(type(food[1]))
+            print(type(food[2]))
+            print(type(food[3]))
+            print(type(food[4]))
+            food=[f.lower() for f in food]
+            if food[5]==user[4]:
+                tempscore= tempscore + 3
+            if food[4]==user[3]:
+                tempscore= tempscore + 3
+            if food[3]==user[2]:
+                tempscore= tempscore + 3
+            if food[2][0:3]==user[1][0:3]:
+                tempscore= tempscore + 3
+            fing= food[1].split(', ')
+            uing= user[0].split(',')
+            for u in uing:
+                if u in fing:
+                    tempscore=tempscore+2
+        # retriving veg/nonveg of dish
+        veg = df.iloc[nindex, [4]][0]
+        # retriving category of dish
+        cat = df.iloc[nindex, [0]][0]
+        if(veg == rveg):                                           # adding 3 if veg/nonveg matches
+            tempscore = tempscore + 3
+        if(rcat == cat):
+            # adding 1 if category matches
+            tempscore = tempscore + 1
+        temprating = df.iloc[nindex, [5]][0]
+        tempprice = df.iloc[nindex, [2]][0]
+
+        # assigning score on the basis of rating
+        tempscore = tempscore + 1.2*(temprating/5)
+        normprice = (tempprice/830)
+        # penalise on the basis of price
+        tempscore = tempscore - 1.05*abs(normprice-rprice)/rprice
+
+        score.append(tempscore)
+
+    # sorting on the basis of score
+    rdishes = [x for _, x in sorted(zip(score, rdishes), reverse=True)]
+    # sorting dish indices on the basis of score
+    ntop10 = [x for _, x in sorted(zip(score, ntop10), reverse=True)]
+
+    dishname = []
+
+    newname = []
+    newridshes = []
+    newntop10 = []
+
+
+    # loop to retrieve dishname
+    for dish in rdishes:
+        dishname.append(dish[0])
+
+    i = 0
+
+    # loop to append dishes if frequency is 3
+    for name in dishname:
+        if(newname.count(name) <= 2):
+            newname.append(name)
+            newridshes.append(rdishes[i])
+            newntop10.append(ntop10[i])
+        i = i+1
+
+
+    rdishes = newridshes[0:10]  # taking top 10 dishes
+    ntop10 = newntop10[0:10]
+    # st.write(rdishes)
+    rindex = []  # list for restaurant index
+
+    for dish in rdishes:  # appending restaurant index of dish
+        rindex.append(dish[1])
+
+    print(rindex)
+
+    dishes_details = []
+    i = 0
+    for index in rindex:
+        templist = []
+        templist.append(rdishes[i][0])  # dishname
+        templist.append(df.iloc[ntop10[i], [0]][0])
+        templist.append(df.iloc[ntop10[i], [2]][0])
+        # # Restaurant name
+        templist.append(df_rest.iat[index-1,0])
+        templist.append(df_rest.iat[index-1,1])
+        templist.append(df_rest.iat[index-1,2])
+        templist.append(df_rest.iat[index-1,3])
+
+        i = i+1
+        print(templist)
+        dishes_details.append(templist)
     return dishes_details
 
 @login_required
@@ -181,7 +377,8 @@ def showRest(request):
 def showMenu(request):
     if request.method == 'POST':
         d=int(request.POST.get("restaurant"))
-        dishes=preprocessing(d-1)
+        #dishes=model1(d-1)
+        dishes=model2(d-1,request)
         return render(request, 'display.html',{'dishes':dishes})
     else:
         # all_rest=list(Restaurant.objects.all())
@@ -232,3 +429,8 @@ def loginView(request):
             return(HttpResponse("Invalid login details!"))
     else:
         return render(request, 'login.html',)
+
+@login_required
+def logoutView(request):
+    logout(request)
+    return HttpResponseRedirect(reverse('Reco:loginView'))
