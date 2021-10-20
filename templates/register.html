@@ -1,6 +1,6 @@
 {% extends "sitebase.html" %}
 {% block title %}
-  <title>Register</title>
+  <title>Sign Up</title>
 {% endblock %}
 {% block content %}
 {% load crispy_forms_tags %}
@@ -12,7 +12,7 @@
             {% csrf_token %}
             {{formA|crispy}}
             {{formB|crispy}}
-            <button class="btn btn-primary btn-block" type="submit" style="width: 200px;">Register</button>
+            <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;">Sign Up</button>
         </form>
         
     </div>

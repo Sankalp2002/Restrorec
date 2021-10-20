@@ -12,8 +12,12 @@
             {% csrf_token %}
             <input class="input" type="text" name="username" placeholder="Username">
             <input class="input" type="password" name="password" placeholder="Password">
-            <button class="btn btn-primary btn-block" type="submit" style="width: 120px;" >Login</button>
+            <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;" >Login</button>
         </form>
+        <br>
+        <a href="{%url 'registerView' %}">
+        <button class="btn btn-secondary btn-block" style="width: 12rem; margin-top: 1rem;">Go to Sign Up page</button>
+        </a>
         
     </div>
 </div>
