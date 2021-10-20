@@ -5,8 +5,7 @@ from django.urls import path
 from django.contrib import admin
 app_name = 'Reco'
 urlpatterns = [
-    path('', views.showRest, name='showRest'),
-    path('menu', views.showMenu, name='showMenu'),
-    path('register', views.registerView, name='registerView'),
-    path('login', views.loginView, name='loginView'),
+    path('restaurant', views.showRest, name='showRest'),
+    path('Menu', views.showMenu, name='showMenu'),
+    path('profile', views.profileView, name='profileView'),
 ]

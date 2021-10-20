@@ -53,7 +53,7 @@ class RecoUser(models.Model):
         ('East', 'East'),
         ('West', 'West'),
         ('North-East', 'North-East'),
-        ('Chinese', 'Chinese'),
+        ('Indo-chinese', 'Indo-chinese'),
         ('Western', 'Western'),
         ('N/P', 'No Preference'),
     )
@@ -74,7 +74,7 @@ class RecoUser(models.Model):
     region = models.CharField(max_length=32, choices=REGION_CHOICES, default='N/P',help_text="Select your region")
     state = models.CharField(max_length=32, choices=STATE_CHOICES, default='N/P',help_text="Select your state")
     flavour = models.CharField(max_length=32, choices=FLAVOUR_CHOICES, default='N/P',help_text="Which flavour do you prefer?")
-    ingredient=models.CharField(max_length=128, help_text="Enter your ingredient preference")
+    ingredient=models.CharField(max_length=128, help_text="Enter your ingredient preferences separated by commas")
     class Meta:
         permissions=(
         )

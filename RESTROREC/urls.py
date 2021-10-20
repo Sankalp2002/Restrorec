@@ -16,10 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
-from Reco import views
+from Reco import views as rviews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('', views.showRecommendation, name='showRecommendation'),
-    path('reco/', include('Reco.urls'))
+    path('register', rviews.registerView, name='registerView'),
+    path('login', rviews.loginView, name='loginView'),
+    path('home/', include('Reco.urls')),
+    path('logout/',rviews.logoutView,name='logoutView'),
+    path('home/<str:pid>',rviews.errorview,name='errorview'),
 ]

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
 from django.http import HttpResponseRedirect, HttpResponse
 import re
 from selenium.webdriver.common.keys import Keys
@@ -241,7 +241,7 @@ def model2(selected_dish,request):
 
     # indices of top 30  dishes
     # first position will be for dishes itself
-    top10 = list(score_series.iloc[1:31].index)
+    top10 = list(score_series.iloc[1:100].index)
 
     # print(top10)
     ntop10 = []
@@ -276,18 +276,18 @@ def model2(selected_dish,request):
             print(type(food[4]))
             food=[f.lower() for f in food]
             if food[5]==user[4]:
-                tempscore= tempscore + 3
+                tempscore= tempscore + 5
             if food[4]==user[3]:
-                tempscore= tempscore + 3
+                tempscore= tempscore + 5
             if food[3]==user[2]:
-                tempscore= tempscore + 3
+                tempscore= tempscore + 5
             if food[2][0:3]==user[1][0:3]:
-                tempscore= tempscore + 3
+                tempscore= tempscore + 5
             fing= food[1].split(', ')
             uing= user[0].split(',')
             for u in uing:
                 if u in fing:
-                    tempscore=tempscore+2
+                    tempscore=tempscore+5
         # retriving veg/nonveg of dish
         veg = df.iloc[nindex, [4]][0]
         # retriving category of dish
@@ -379,7 +379,7 @@ def showMenu(request):
         d=int(request.POST.get("restaurant"))
         #dishes=model1(d-1)
         dishes=model2(d-1,request)
-        return render(request, 'display.html',{'dishes':dishes})
+        return render(request, 'display.html',{'dishes':dishes,'User':request.user})
     else:
         # all_rest=list(Restaurant.objects.all())
         form=restForm()
@@ -400,7 +400,7 @@ def registerView(request):
             docB.save()
             registered=True
             m="Registration Successful"
-            return HttpResponseRedirect(reverse('Reco:loginView'))
+            return HttpResponseRedirect(reverse('loginView'))
         else:
             print(userRegisterFormA.errors,userRegisterFormB.errors)
     else:
@@ -430,7 +430,25 @@ def loginView(request):
     else:
         return render(request, 'login.html',)
 
+
+@login_required
+def profileView(request):
+    u = request.user
+    uid=u.id
+    ru=RecoUser.objects.get(RUser_id=uid)
+    #ing=ru.ingredient
+    return render(request, 'myprofile.html',{'User':ru})
+
 @login_required
 def logoutView(request):
     logout(request)
-    return HttpResponseRedirect(reverse('Reco:loginView'))
+    return HttpResponseRedirect(reverse('loginView'))
+
+
+def errorview(request,pid):
+    e="You are not logged in!"
+    return render(request,'error.html',{'e':e})
+
+def error_404(request, exception):
+   context = {}
+   return render(request,'404.html', context)

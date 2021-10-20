@@ -1,27 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="Description" content="Enter your description here" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- <link rel="stylesheet" href="assets/css/style.css"> -->
-    <title>Title</title>
-    <script type="text/javascript">
-
-        function changeFunc() {
-            var selectBox = document.getElementById("select_restaurant");
-            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-            alert(selectedValue);
-        }
-     
-    </script>
-</head>
-
-<body>
+{% extends "sitebase.html" %}
+{% block title %}
+  <title>Home</title>
+{% endblock %}
+{% block content %}
+{% load crispy_forms_tags %}
+<br> <br>
+<div class="container">
+    <h3> Choose a Menu Item to get similar recommendations</h3>
     <form class="form-group" action="{% url 'Reco:showMenu' %}" method="POST">
         {% csrf_token %}
         <select name="restaurant" id="select_restaurant" >
@@ -29,11 +14,8 @@
             <option value={{t.itemId}}>{{t.name}}</option>
             {% endfor %}
         </select>
-        <button type="submit">Submit</button>
+        <button class="btn btn-primary btn-block" type="submit" style="width: 120px;" >Submit</button>
     </form>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
-</body>
+</div>
 
-</html>
+{% endblock %}
