@@ -10,9 +10,9 @@
     <div>
         <form class="form-group" action="{% url 'loginView' %}" method="POST">
             {% csrf_token %}
-            <input class="input" type="text" name="username" placeholder="Username">
-            <input class="input" type="password" name="password" placeholder="Password">
-            <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;" >Login</button>
+            <input class="input form-control" type="text" name="username" placeholder="Username" style="width: 20rem; margin: 0.5rem;">
+            <input class="input form-control" type="password" name="password" placeholder="Password" style="width: 20rem; margin: 0.5rem;">
+            <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin: 1rem 0 0 0.5rem; " >Login</button>
         </form>
         <br>
         <a href="{%url 'registerView' %}">

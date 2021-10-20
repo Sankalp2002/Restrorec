@@ -7,7 +7,7 @@
 <br> <br>
 <div class="container">
     <h3> Create your profile</h3>
-    <div class="panel panel-default">
+    <div class="panel panel-default" style="width: 30rem;">
         <form class="form-group" action="{% url 'registerView' %}" method="POST">
             {% csrf_token %}
             {{formA|crispy}}

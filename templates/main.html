@@ -9,12 +9,11 @@
     <h3> Choose a Restaurant </h3>
     <form class="form-group" action="{% url 'Reco:showRest' %}" method="POST">
         {% csrf_token %}
-        <select name="restaurant" id="select_restaurant" >
+        <select name="restaurant" id="select_restaurant" class="form-control" style="width: 20rem;">
             {% for t in rest %}
             <option value={{t.restaurantId}}>{{t.name}}</option>
             {% endfor %}
         </select>
-        <br>
         <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;">Submit</button>
     </form>
 </div>
