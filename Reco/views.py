@@ -36,9 +36,9 @@ def initial():
     for row in item_list:
         t=row[6]
         if t<24:
-            menuItem.objects.get_or_create(category=row[0],name=row[1],price=row[2],description=row[3],diet=row[4],rating=row[5],restaurantId_id=91+t)
+            menuItem.objects.get_or_create(category=row[0],name=row[1],price=row[2],description=row[3],diet=row[4],rating=row[5],restaurantId_id=t)
         else:
-            menuItem.objects.get_or_create(category=row[0],name=row[1],price=row[2],description=row[3],diet=row[4],rating=row[5],restaurantId_id=90+t)
+            menuItem.objects.get_or_create(category=row[0],name=row[1],price=row[2],description=row[3],diet=row[4],rating=row[5],restaurantId_id=t-1)
 
 def foodfun(fname):
     df= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
