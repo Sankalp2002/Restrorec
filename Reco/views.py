@@ -24,8 +24,8 @@ from django.core.validators import ValidationError,validate_email
 # from settings import STATIC_DIR
 # Create your views here.
 def initial():
-    df_item= pd.read_csv('/static/datasets/all_items.csv')
-    df_rest = pd.read_csv('/static/datasets/all_rest.csv')
+    df_item= pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
+    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
     df_rest.columns = ['Name', 'Rating','Cuisine', 'Address', 'No. of Ratings']
     rest_list=df_rest.values.tolist()
     item_list=df_item.values.tolist()
