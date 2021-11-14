@@ -15,7 +15,7 @@ import re
 import numpy as np
 import pandas as pd
 from Reco.models import RecoUser,Restaurant,menuItem
-from Reco.forms import restForm,userRegisterFormA,userRegisterFormB
+from Reco.forms import userRegisterFormA,userRegisterFormB
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate,login,logout
@@ -231,8 +231,8 @@ def model2(selected_dish,request):
 
     df=pd.DataFrame(all_items,columns=['Category', 'Item Name','Price','Description','Veg/Non-veg','Rating','Restaurant Index'])
     df_rest=pd.DataFrame(all_rests,columns=['Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    print(df.dtypes)
-    print(df_rest.dtypes)
+    # print(df.dtypes)
+    # print(df_rest.dtypes)
     df['Description'] = df['Description'].str.lower()
     df['Description'] = df['Description'].apply(  # removing punctuation with empty string
         lambda text: text.translate(str.maketrans('', '', string.punctuation)))
@@ -267,7 +267,7 @@ def model2(selected_dish,request):
         if(each != idx):
             # appending tuple of (item name,restaurant index) to rdishes
             if (df.iloc[each, [1]][0], df.iloc[each, [6]][0]) not in rdishes:
-                rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0]))
+                rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0],each))
                 ntop10.append(each)
 
     # st.write(ntop10)
@@ -285,12 +285,12 @@ def model2(selected_dish,request):
             user=getUser(request)
             user=[f.lower() for f in user]
             food=list(df_food.iloc[top_index])
-            print(food)
-            print(type(food[0]))
-            print(type(food[1]))
-            print(type(food[2]))
-            print(type(food[3]))
-            print(type(food[4]))
+            # print(food)
+            # print(type(food[0]))
+            # print(type(food[1]))
+            # print(type(food[2]))
+            # print(type(food[3]))
+            # print(type(food[4]))
             food=[f.lower() for f in food]
             if food[5]==user[4]:
                 tempscore= tempscore + 5
@@ -345,7 +345,7 @@ def model2(selected_dish,request):
 
     # loop to append dishes if frequency is 3
     for name in dishname:
-        if(newname.count(name) <= 2):
+        if(newname.count(name) < 2):
             newname.append(name)
             newridshes.append(rdishes[i])
             newntop10.append(ntop10[i])
@@ -356,15 +356,17 @@ def model2(selected_dish,request):
     ntop10 = newntop10[0:10]
     # st.write(rdishes)
     rindex = []  # list for restaurant index
-
+    dindex = []
     for dish in rdishes:  # appending restaurant index of dish
         rindex.append(dish[1])
+        dindex.append(dish[2])
 
     print(rindex)
 
     dishes_details = []
     i = 0
-    for index in rindex:
+    for j in range(len(rindex)):
+        index=rindex[j]
         templist = []
         templist.append(rdishes[i][0])  # dishname
         templist.append(df.iloc[ntop10[i], [0]][0])
@@ -374,9 +376,11 @@ def model2(selected_dish,request):
         templist.append(df_rest.iat[index-1,1])
         templist.append(df_rest.iat[index-1,2])
         templist.append(df_rest.iat[index-1,3])
-
+        templist.append(dindex[j]+1)
+        templist.append(df.iloc[ntop10[i], [5]][0])
+        print(dindex[j]+1)
         i = i+1
-        print(templist)
+        #print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -455,6 +459,37 @@ def profileView(request):
     ru=RecoUser.objects.get(RUser_id=uid)
     #ing=ru.ingredient
     return render(request, 'myprofile.html',{'User':ru})
+
+@login_required
+def orderView(request):
+    if request.method == 'POST':
+        itemIds=request.POST.getlist('order')
+        orders=[]
+        for id in itemIds:
+            name=menuItem.objects.get(itemId=id).name
+            price=menuItem.objects.get(itemId=id).price
+            resto=menuItem.objects.get(itemId=id).restaurantId
+            orders.append([name,price,resto,id])
+        return render(request, 'rateFood.html',{'orders':orders})
+    else:
+        # form=ratingForm()
+        return render(request, 'rateFood.html')
+
+@login_required
+def rateView(request):
+    if request.method == 'POST':
+        orderIds=request.POST.getlist('ids')
+        ratings=request.POST.getlist('ratings')
+        # print(orderIds)
+        # print(ratings)
+        for i in range(len(orderIds)):
+            id=orderIds[i]
+            item=menuItem.objects.get(itemId=id)
+            item.rating=ratings[i]
+            item.save()
+        return HttpResponseRedirect(reverse('Reco:showRest'))
+    else:
+        return render(request, 'rateFood.html',)
 
 @login_required
 def logoutView(request):

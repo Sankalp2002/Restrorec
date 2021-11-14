@@ -1,40 +1,34 @@
 {% extends "sitebase.html" %}
 {% block title %}
-  <title>Recommended Items</title>
+  <title>Rate Items</title>
 {% endblock %}
 {% block content %}
 <br> <br>
 <div class="container">
     <!-- <h3> Logged in as User.username </h3> -->
-    <h3>Top 10 Recommendations </h3>
+    <h3>Rate Your Order </h3>
     <div>
-        <form class="form-group" action="{% url 'Reco:orderView' %}" method="POST">
+        <form class="form-group" action="{% url 'Reco:rateView' %}" method="POST">
             {% csrf_token %}
         <table class="table table-light table-hover table-bordered table-striped">
             <thead class="bg-info">
                 <tr>
-                    <th scope="col">Select</th>
                     <th scope="col">Item Name</th>
-                    <th scope="col">Cuisine</th>    
                     <th scope="col">Price(INR)</th>
                     <th scope="col">Restaurant</th>
                     <th scope="col">Rating</th>
-                    <th scope="col">Address</th>
                 </tr>
             </thead>
             <tbody>
             
                 
-            {% for t in dishes %}
+            {% for t in orders %}
                 <tr>
-                    <td> <input type="checkbox" name="order" value="{{t.7}}" id="{{t.7}}"> </td>
-                    <!-- <label for="{{t.7}}">{{t.0}}</label> -->
-                    <td> <label for="{{t.7}}">{{t.0}}</label> </td>
-                    <td>{{t.5}}</td>
+                    <td>{{t.0}}</td>
+                    <td>{{t.1}}</td>
                     <td>{{t.2}}</td>
-                    <td>{{t.3}}</td>
-                    <td>{{t.8}}</td>
-                    <td>{{t.6}}</td>
+                    <td><input type="number" step="0.1" min="1" max="5" name="ratings" id="{{t.3}}" multiple> </td>
+                    <input type="hidden" id="{{t.3}}" name="ids" value="{{t.3}}" multiple>
                 </tr>
             {% endfor %}
     

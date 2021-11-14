@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.fields import FloatField, IntegerField
 #from django.db import models
 from Reco.models import RecoUser,Restaurant,menuItem
 from django.contrib.auth.models import User
@@ -59,7 +60,6 @@ class userRegisterFormB(forms.ModelForm):
         model=RecoUser
         fields=('name','age','sex','address','phone','diet','region','state','flavour','ingredient')
 
-class restForm(forms.ModelForm):
-    class Meta():
-        model=menuItem
-        fields=('restaurantId',)
+# class ratingForm(forms.Form):
+#     rating=FloatField(widget=forms.NumberInput(attrs={'class': 'form-control','min':'1','max':'5','step':'0.1'}))
+#     id=IntegerField(widget=forms.HiddenInput())
