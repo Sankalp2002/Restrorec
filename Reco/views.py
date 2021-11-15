@@ -19,7 +19,7 @@ from Reco.forms import userRegisterFormA,userRegisterFormB
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate,login,logout
-from django.core.validators import ValidationError,validate_email
+import math
 # from django.conf import settings
 # from settings import STATIC_DIR
 # Create your views here.
@@ -278,9 +278,10 @@ def model2(selected_dish,request):
     rcat = df.iloc[idx, [0]][0]
     rprice = df.iloc[idx, [2]][0]
     score = list()
+    menuItem_objects=menuItem.objects.all()
     for nindex in ntop10:
         tempscore = 0
-        top_index=foodfun(df.iloc[nindex,[1]][0])
+        top_index=menuItem_objects[nindex].link 
         if top_index!=-1:
             user=getUser(request)
             user=[f.lower() for f in user]
@@ -293,13 +294,13 @@ def model2(selected_dish,request):
             # print(type(food[4]))
             food=[f.lower() for f in food]
             if food[5]==user[4]:
-                tempscore= tempscore + 5
+                tempscore= tempscore + 1
             if food[4]==user[3]:
-                tempscore= tempscore + 5
+                tempscore= tempscore + 1
             if food[3]==user[2]:
-                tempscore= tempscore + 5
+                tempscore= tempscore + 1
             if food[2][0:3]==user[1][0:3]:
-                tempscore= tempscore + 5
+                tempscore= tempscore + 1
             fing= food[1].split(', ')
             uing= user[0].split(',')
             for u in uing:
@@ -387,6 +388,7 @@ def model2(selected_dish,request):
 @login_required
 def showRest(request):
     if request.method == 'POST':
+
         d=request.POST.get("restaurant")
         menu=menuItem.objects.filter(restaurantId=d)
         return render(request, 'main2.html',{'menu':menu})
@@ -403,8 +405,7 @@ def showMenu(request):
         return render(request, 'display.html',{'dishes':dishes,'User':request.user})
     else:
         # all_rest=list(Restaurant.objects.all())
-        form=restForm()
-        return render(request, 'main.html',{'form':form})
+        return render(request, 'main.html',)
 
 def registerView(request):
     registered=False
@@ -485,7 +486,8 @@ def rateView(request):
         for i in range(len(orderIds)):
             id=orderIds[i]
             item=menuItem.objects.get(itemId=id)
-            item.rating=ratings[i]
+            item.rating=item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1)
+            item.numRatings=item.numRatings+1
             item.save()
         return HttpResponseRedirect(reverse('Reco:showRest'))
     else:

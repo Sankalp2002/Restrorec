@@ -102,5 +102,7 @@ class menuItem(models.Model):
     category = models.CharField(max_length=128)
     diet = models.CharField(max_length=64)
     restaurantId = models.ForeignKey(Restaurant, on_delete=models.CASCADE, help_text="Enter ID")
+    numRatings = models.IntegerField(default=0)
+    link=models.IntegerField(default=-1)
     def __str__(self):
         return self.name
