@@ -38,6 +38,13 @@ class userRegisterFormA(forms.ModelForm):
         fields=('username','email','password')
 
 class userRegisterFormB(forms.ModelForm):
+    CHOICES = (('potato','potato'),
+               ('paneer','paneer'),
+               ('milk','milk'),
+               ('rice','rice'),
+               ('cheese','cheese'),)
+
+    multipleIngredients = forms.MultipleChoiceField(choices=CHOICES, widget=forms.CheckboxSelectMultiple())
 
     def clean_age(self):
         data=self.cleaned_data['age']
@@ -55,10 +62,10 @@ class userRegisterFormB(forms.ModelForm):
         else:
             raise ValidationError(('Mobile Number must have 10 digits'))
         return data
-
+    
     class Meta():
         model=RecoUser
-        fields=('name','age','sex','address','phone','diet','region','state','flavour','ingredient')
+        fields=('name','age','sex','address','phone','diet','region','state','flavour')
 
 # class ratingForm(forms.Form):
 #     rating=FloatField(widget=forms.NumberInput(attrs={'class': 'form-control','min':'1','max':'5','step':'0.1'}))

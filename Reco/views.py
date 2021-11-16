@@ -419,6 +419,20 @@ def registerView(request):
             docA.save()
             docB=formB.save(commit=False)
             docB.RUser=docA
+            # userObj=RecoUser.objects.get(RUser.username=docA.username)
+            ing=formB.cleaned_data.get('multipleIngredients')
+            print("1234567890")
+            print(ing)
+            ing2=""
+            for i in ing:
+                ing2+=i+","
+            docB.ingredient=ing2
+            positiveFeature = []
+            positiveFeature.append(docB.region )
+            positiveFeature.append(docB.flavour)
+            for i in ing:
+                positiveFeature.append(i)
+            docB.positiveFeature = positiveFeature
             docB.save()
             registered=True
             m="Registration Successful"
