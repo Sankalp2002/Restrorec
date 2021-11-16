@@ -107,5 +107,6 @@ class menuItem(models.Model):
     restaurantId = models.ForeignKey(Restaurant, on_delete=models.CASCADE, help_text="Enter ID")
     numRatings = models.IntegerField(default=0)
     link=models.IntegerField(default=-1)
+    features=models.JSONField(default=list)
     def __str__(self):
         return self.name

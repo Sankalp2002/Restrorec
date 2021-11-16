@@ -388,7 +388,6 @@ def model2(selected_dish,request):
 @login_required
 def showRest(request):
     if request.method == 'POST':
-
         d=request.POST.get("restaurant")
         menu=menuItem.objects.filter(restaurantId=d)
         return render(request, 'main2.html',{'menu':menu})
