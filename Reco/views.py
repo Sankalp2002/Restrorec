@@ -70,11 +70,20 @@ def getUser(request):
     u = request.user
     uid=u.id
     ru=RecoUser.objects.get(RUser_id=uid)
-    # print(type(ru.ingredient))
-    # print(type(ru.diet))
-    # type(ru.ingredient)
     desc=[ru.ingredient,ru.diet,ru.flavour,ru.state,ru.region]
     return desc
+
+def getUser3(request):
+    u = request.user
+    uid=u.id
+    ru=RecoUser.objects.get(RUser_id=uid)
+    return {'positive':ru.positiveFeature,'negative':ru.negativeFeature}
+
+def getUserObj(request):
+    u = request.user
+    uid=u.id
+    ru=RecoUser.objects.get(RUser_id=uid)
+    return ru
 
 def model1(selected_dish):
     nltk.download('stopwords')
@@ -385,6 +394,152 @@ def model2(selected_dish,request):
         dishes_details.append(templist)
     return dishes_details
 
+def model3(request):
+    featDict=getUser3(request)
+    posVector=featDict['positive']
+    temp=""
+    for i in posVector:
+        temp+=(i+", ")
+    posVector=temp
+    negVector=featDict['negative']
+    temp=""
+    for i in negVector:
+        temp+=(i+", ")
+    negVector=temp
+    nltk.download('stopwords')
+    all_rest=Restaurant.objects.all()
+    all_item=menuItem.objects.all()
+    all_items=[]
+    all_rests=[]
+    for r in all_rest:
+        t=[r.name,r.rating,r.cuisine,r.address,r.totalRatings]
+        all_rests.append(t)
+    for r in all_item:
+        temp=""
+        for i in r.features:
+            temp+=(i+", ")
+        t=[r.category,r.name,r.price,r.description,r.diet,r.rating,r.restaurantId_id,temp]
+        all_items.append(t)
+
+    df=pd.DataFrame(all_items,columns=['Category', 'Item Name','Price','Description','Veg/Non-veg','Rating','Restaurant Index','Feature_Vector'])
+    df_rest=pd.DataFrame(all_rests,columns=['Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
+    # print(df.dtypes)
+    # print(df_rest.dtypes)
+    vectorList=list(df['Feature_Vector'])
+    vectorList.append(posVector)
+    vectorList.append(negVector)
+    vectorList= [v.lower() for v in vectorList]
+    # vectorList= [v.apply(
+    #     lambda text: text.translate(str.maketrans('', '', string.punctuation))) for v in vectorList]
+
+    STOPWORDS = set(stopwords.words('english'))  # loading stopwords of english
+    # vectorList= vectorList.apply(lambda text: " ".join(  # remving stopwords from description
+    #     [word for word in str(text).split() if word not in STOPWORDS]))
+
+    tfidf = TfidfVectorizer(analyzer='word', ngram_range=(
+    1, 2), min_df=0, stop_words='english')
+    # vectorise the description and calculate tfidf values
+    tfidf_matrix = tfidf.fit_transform(vectorList)
+
+    # calculte correlation matrix of cosine similarity on the basis of tf idf
+    cosine_similarities = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    rdishes = list()               # recommended dishes list
+    score_series1 = cosine_similarities[len(vectorList)-2]
+    score_series2 = cosine_similarities[len(vectorList)-1]
+    indexList=[i for i in range(len(vectorList))]
+    vector1=list(zip(indexList,score_series1))
+    vector2=list(zip(indexList,score_series2))
+    pos_score_series = sorted(vector1,key=lambda x: (x[1]),reverse=True)
+    neg_score_series = sorted(vector2,key=lambda x: (x[1]))
+    # indices of top 30  dishes
+    # first position will be for dishes itself
+    top100 = pos_score_series[1:51]
+    bot100 = neg_score_series[0:200]
+    topdict={}
+    botdict={}
+    for i in top100:
+        topdict.update({i[0]:i[1]})
+    for i in bot100:
+        botdict.update({i[0]:i[1]})
+    # print(top10)
+    for i in botdict:
+        if i in topdict:
+            topdict.pop(i)
+        
+    ntop10 = []
+    for i in topdict:
+        ntop10.append(i)
+    rdishes=[]
+    for each in ntop10:
+        # appending tuple of (item name,restaurant index) to rdishes
+        row=[]
+        
+    score = list()
+    menuItem_objects=menuItem.objects.all()
+    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    for nindex in ntop10:
+        tempscore = 0
+        top_index=menuItem_objects[nindex].link 
+        if top_index!=-1:
+            user=getUser(request)
+            user=[f.lower() for f in user]
+            food=list(df_food.iloc[top_index])
+            food=[f.lower() for f in food]
+            if food[4]==user[3]:
+                tempscore= tempscore + 1
+            if food[2]==user[1]:
+                tempscore= tempscore + 1
+        temprating = df.iloc[nindex, [5]][0]
+        tempprice = df.iloc[nindex, [2]][0]
+
+        # assigning score on the basis of rating
+        tempscore = tempscore + 1.2*(temprating/5)
+        normprice = (tempprice/830)
+        # penalise on the basis of price
+        tempscore = tempscore - 1.05*abs(normprice-tempprice)/tempprice
+
+        score.append(tempscore)
+    ntop10scores=list(zip(ntop10,score))
+    sorted_scores = sorted(ntop10scores,key=lambda x: (x[1]),reverse=True)
+
+    dishname = []
+    newname = []
+    newntop10 = []
+    # loop to retrieve dishname
+    for i in range(len(sorted_scores)):
+        i=sorted_scores[i][0]
+        dishname.append(df.iloc[i, [1]][0])
+
+    i = 0
+    # loop to append dishes if frequency is 3
+    for name in dishname:
+        if(newname.count(name) < 2):
+            newname.append(name)
+            newntop10.append(ntop10[i])
+        i = i+1
+
+    final5 = newntop10[0:5]
+
+    dishes_details = []
+    i = 0
+    for j in final5:
+        index=(df.iloc[j, [6]][0])
+        templist = []
+        templist.append(df.iloc[j, [1]][0])# name
+        templist.append(df.iloc[j, [0]][0])# category
+        templist.append(df.iloc[j, [2]][0])# price
+        templist.append(df_rest.iat[index-1,0])# restaurant
+        templist.append(df_rest.iat[index-1,1])# rest rating
+        templist.append(df_rest.iat[index-1,2])# cuisine
+        templist.append(df_rest.iat[index-1,3])# address
+        templist.append(j+1)  #food index
+        templist.append(df.iloc[j, [5]][0]) #food rating
+        i = i+1
+        #print(templist)
+        dishes_details.append(templist)
+    return dishes_details
+
 @login_required
 def showRest(request):
     if request.method == 'POST':
@@ -400,7 +555,15 @@ def showMenu(request):
     if request.method == 'POST':
         d=int(request.POST.get("restaurant"))
         #dishes=model1(d-1)
-        dishes=model2(d-1,request)
+        #dishes=model2(d-1,request)
+        user=getUserObj(request)
+        posList=user.positiveFeature
+        featDict=user.features
+        for p in posList:
+            featDict.update({p:5})
+        user.features=featDict
+        user.save()
+        dishes=model3(request)
         return render(request, 'display.html',{'dishes':dishes,'User':request.user})
     else:
         # all_rest=list(Restaurant.objects.all())
@@ -431,6 +594,10 @@ def registerView(request):
             positiveFeature.append(docB.flavour)
             for i in ing:
                 positiveFeature.append(i)
+            featDict=docB.features
+            for p in positiveFeature:
+                featDict.update({p:5})
+            docB.features=featDict
             docB.positiveFeature = positiveFeature
             docB.save()
             registered=True
@@ -497,11 +664,44 @@ def rateView(request):
         # print(orderIds)
         # print(ratings)
         for i in range(len(orderIds)):
+            user=getUserObj(request)
             id=orderIds[i]
             item=menuItem.objects.get(itemId=id)
             item.rating=item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1)
             item.numRatings=item.numRatings+1
             item.save()
+            if int(ratings[i])>4:
+                featDict=user.features
+                for f in item.features:
+                    prewt=featDict[f]
+                    if not f in featDict:
+                        prewt=0
+                    newwt=0.4*prewt+0.6*int(ratings[i])
+                    featDict[f]=newwt
+                user.features=featDict
+            if int(ratings[i])<2:
+                featDict=user.features
+                for f in item.features:
+                    prewt=featDict[f]
+                    if not f in featDict:
+                        prewt=0
+                    newwt=0.4*prewt-0.6*int(ratings[i])
+                    featDict[f]=newwt
+                user.features=featDict
+            user.save()
+            user=getUserObj(request)
+            featDict=user.features
+            posList=[]
+            negList=[]
+            for f in featDict:
+                if featDict[f]>4.5:
+                    posList.append(f)
+                if featDict[f]<1.5:
+                    negList.append(f)
+            user.positiveFeature=posList
+            user.negativeFeature=negList
+            user.save()
+
         return HttpResponseRedirect(reverse('Reco:showRest'))
     else:
         return render(request, 'rateFood.html',)
