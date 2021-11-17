@@ -19,7 +19,6 @@ from Reco.forms import userRegisterFormA,userRegisterFormB
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate,login,logout
-import math
 # from django.conf import settings
 # from settings import STATIC_DIR
 # Create your views here.
@@ -76,6 +75,7 @@ def getUser(request):
 def getUser3(request):
     u = request.user
     uid=u.id
+    print("USER:",uid)
     ru=RecoUser.objects.get(RUser_id=uid)
     return {'positive':ru.positiveFeature,'negative':ru.negativeFeature}
 
@@ -443,37 +443,35 @@ def model3(request):
 
     # calculte correlation matrix of cosine similarity on the basis of tf idf
     cosine_similarities = linear_kernel(tfidf_matrix, tfidf_matrix)
-
     rdishes = list()               # recommended dishes list
     score_series1 = cosine_similarities[len(vectorList)-2]
     score_series2 = cosine_similarities[len(vectorList)-1]
+    score_series=np.subtract(score_series1,score_series2)
     indexList=[i for i in range(len(vectorList))]
-    vector1=list(zip(indexList,score_series1))
-    vector2=list(zip(indexList,score_series2))
-    pos_score_series = sorted(vector1,key=lambda x: (x[1]),reverse=True)
-    neg_score_series = sorted(vector2,key=lambda x: (x[1]))
+    vector=list(zip(indexList,score_series))
+    score_series = sorted(vector,key=lambda x: (x[1]),reverse=True)
+    # print("MAX:",pos_score_series[1])
+    # print("MIN:",neg_score_series[150])
     # indices of top 30  dishes
     # first position will be for dishes itself
-    top100 = pos_score_series[1:51]
-    bot100 = neg_score_series[0:200]
+    # top100 = pos_score_series[1:51]
+    # bot100 = neg_score_series[0:200]
+    # topdict={}
+    # botdict={}
+    # for i in top100:
+    #     topdict.update({i[0]:i[1]})
+    # for i in bot100:
+    #     botdict.update({i[0]:i[1]})
+    # # print(top10)
+    # for i in botdict:
+    #     if i in topdict:
+    #         topdict.pop(i)
     topdict={}
-    botdict={}
-    for i in top100:
+    for i in score_series[1:51]:
         topdict.update({i[0]:i[1]})
-    for i in bot100:
-        botdict.update({i[0]:i[1]})
-    # print(top10)
-    for i in botdict:
-        if i in topdict:
-            topdict.pop(i)
-        
     ntop10 = []
     for i in topdict:
         ntop10.append(i)
-    rdishes=[]
-    for each in ntop10:
-        # appending tuple of (item name,restaurant index) to rdishes
-        row=[]
         
     score = list()
     menuItem_objects=menuItem.objects.all()
@@ -498,8 +496,8 @@ def model3(request):
         normprice = (tempprice/830)
         # penalise on the basis of price
         tempscore = tempscore - 1.05*abs(normprice-tempprice)/tempprice
-
         score.append(tempscore)
+
     ntop10scores=list(zip(ntop10,score))
     sorted_scores = sorted(ntop10scores,key=lambda x: (x[1]),reverse=True)
 
@@ -556,13 +554,13 @@ def showMenu(request):
         d=int(request.POST.get("restaurant"))
         #dishes=model1(d-1)
         #dishes=model2(d-1,request)
-        user=getUserObj(request)
-        posList=user.positiveFeature
-        featDict=user.features
-        for p in posList:
-            featDict.update({p:5})
-        user.features=featDict
-        user.save()
+        # user=getUserObj(request)
+        # posList=user.positiveFeature
+        # featDict=user.features
+        # for p in posList:
+        #     featDict.update({p:5})
+        # user.features=featDict
+        # user.save()
         dishes=model3(request)
         return render(request, 'display.html',{'dishes':dishes,'User':request.user})
     else:
