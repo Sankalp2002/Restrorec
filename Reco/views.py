@@ -13,6 +13,7 @@ from sklearn.metrics.pairwise import linear_kernel
 from nltk.corpus import stopwords
 import re
 import numpy as np
+import random
 import pandas as pd
 from Reco.models import RecoUser,Restaurant,menuItem
 from Reco.forms import userRegisterFormA,userRegisterFormB
@@ -130,16 +131,16 @@ def model1(selected_dish):
     top10 = list(score_series.iloc[1:31].index)
 
     # print(top10)
-    ntop10 = []
+    ntop5 = []
 
     for each in top10:
         if(each != idx):
             # appending tuple of (item name,restaurant index) to rdishes
             if (df.iloc[each, [1]][0], df.iloc[each, [6]][0]) not in rdishes:
                 rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0]))
-                ntop10.append(each)
+                ntop5.append(each)
 
-    # st.write(ntop10)
+    # st.write(ntop5)
     # retrieving veg/nonveg of recommended list
     rveg = df.iloc[idx, [4]][0]
 
@@ -147,7 +148,7 @@ def model1(selected_dish):
     rcat = df.iloc[idx, [0]][0]
     rprice = df.iloc[idx, [2]][0]
     score = list()
-    for nindex in ntop10:
+    for nindex in ntop5:
         # retriving veg/nonveg of dish
         veg = df.iloc[nindex, [4]][0]
         # retriving category of dish
@@ -172,13 +173,13 @@ def model1(selected_dish):
     # sorting on the basis of score
     rdishes = [x for _, x in sorted(zip(score, rdishes), reverse=True)]
     # sorting dish indices on the basis of score
-    ntop10 = [x for _, x in sorted(zip(score, ntop10), reverse=True)]
+    ntop5 = [x for _, x in sorted(zip(score, ntop5), reverse=True)]
 
     dishname = []
 
     newname = []
     newridshes = []
-    newntop10 = []
+    newntop5 = []
 
 
     # loop to retrieve dishname
@@ -192,12 +193,12 @@ def model1(selected_dish):
         if(newname.count(name) <= 2):
             newname.append(name)
             newridshes.append(rdishes[i])
-            newntop10.append(ntop10[i])
+            newntop5.append(ntop5[i])
         i = i+1
 
 
     rdishes = newridshes[0:10]  # taking top 10 dishes
-    ntop10 = newntop10[0:10]
+    ntop5 = newntop5[0:10]
     # st.write(rdishes)
     rindex = []  # list for restaurant index
 
@@ -211,8 +212,8 @@ def model1(selected_dish):
     for index in rindex:
         templist = []
         templist.append(rdishes[i][0])  # dishname
-        templist.append(df.iloc[ntop10[i], [0]][0])
-        templist.append(df.iloc[ntop10[i], [2]][0])
+        templist.append(df.iloc[ntop5[i], [0]][0])
+        templist.append(df.iloc[ntop5[i], [2]][0])
         # # Restaurant name
         templist.append(df_rest.iat[index-1,0])
         templist.append(df_rest.iat[index-1,1])
@@ -270,16 +271,16 @@ def model2(selected_dish,request):
     top10 = list(score_series.iloc[1:100].index)
 
     # print(top10)
-    ntop10 = []
+    ntop5 = []
 
     for each in top10:
         if(each != idx):
             # appending tuple of (item name,restaurant index) to rdishes
             if (df.iloc[each, [1]][0], df.iloc[each, [6]][0]) not in rdishes:
                 rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0],each))
-                ntop10.append(each)
+                ntop5.append(each)
 
-    # st.write(ntop10)
+    # st.write(ntop5)
     # retrieving veg/nonveg of recommended list
     rveg = df.iloc[idx, [4]][0]
 
@@ -288,7 +289,7 @@ def model2(selected_dish,request):
     rprice = df.iloc[idx, [2]][0]
     score = list()
     menuItem_objects=menuItem.objects.all()
-    for nindex in ntop10:
+    for nindex in ntop5:
         tempscore = 0
         top_index=menuItem_objects[nindex].link 
         if top_index!=-1:
@@ -338,13 +339,13 @@ def model2(selected_dish,request):
     # sorting on the basis of score
     rdishes = [x for _, x in sorted(zip(score, rdishes), reverse=True)]
     # sorting dish indices on the basis of score
-    ntop10 = [x for _, x in sorted(zip(score, ntop10), reverse=True)]
+    ntop5 = [x for _, x in sorted(zip(score, ntop5), reverse=True)]
 
     dishname = []
 
     newname = []
     newridshes = []
-    newntop10 = []
+    newntop5 = []
 
 
     # loop to retrieve dishname
@@ -358,12 +359,12 @@ def model2(selected_dish,request):
         if(newname.count(name) < 2):
             newname.append(name)
             newridshes.append(rdishes[i])
-            newntop10.append(ntop10[i])
+            newntop5.append(ntop5[i])
         i = i+1
 
 
     rdishes = newridshes[0:10]  # taking top 10 dishes
-    ntop10 = newntop10[0:10]
+    ntop5 = newntop5[0:10]
     # st.write(rdishes)
     rindex = []  # list for restaurant index
     dindex = []
@@ -379,15 +380,15 @@ def model2(selected_dish,request):
         index=rindex[j]
         templist = []
         templist.append(rdishes[i][0])  # dishname
-        templist.append(df.iloc[ntop10[i], [0]][0])
-        templist.append(df.iloc[ntop10[i], [2]][0])
+        templist.append(df.iloc[ntop5[i], [0]][0])
+        templist.append(df.iloc[ntop5[i], [2]][0])
         # # Restaurant name
         templist.append(df_rest.iat[index-1,0])
         templist.append(df_rest.iat[index-1,1])
         templist.append(df_rest.iat[index-1,2])
         templist.append(df_rest.iat[index-1,3])
         templist.append(dindex[j]+1)
-        templist.append(df.iloc[ntop10[i], [5]][0])
+        templist.append(df.iloc[ntop5[i], [5]][0])
         print(dindex[j]+1)
         i = i+1
         #print(templist)
@@ -447,7 +448,8 @@ def model3(request):
     score_series1 = cosine_similarities[len(vectorList)-2]
     score_series2 = cosine_similarities[len(vectorList)-1]
     score_series=np.subtract(score_series1,score_series2)
-    indexList=[i for i in range(len(vectorList))]
+    score_series=score_series[0:len(score_series)-2]
+    indexList=[i for i in range(len(score_series))]
     vector=list(zip(indexList,score_series))
     score_series = sorted(vector,key=lambda x: (x[1]),reverse=True)
     maxsim=score_series[0][1]
@@ -455,25 +457,17 @@ def model3(request):
     print(maxsim)
     print(minsim)
     topdict={}
-    for i in score_series[1:101]:
+    for i in score_series[0:100]:
         topdict.update({i[0]:i[1]})
 
-    randlist=np.random.randint(101,751,size=50,dtype=int)
-    ranlist2=[]
-    for i in randlist:
-        ranlist2.append([i,vector[i][1],df.iloc[i, [5]][0],df.iloc[i, [8]][0]])
-    score_series2 = sorted(ranlist2,key=lambda x: (-x[1],-x[2],x[3]))
-    randtop5=score_series2[0:5]
-    randtop5=[i[0] for i in randtop5]
-    print(randtop5)
-    ntop10 = []
+    ntop100 = []
     for i in topdict:
-        ntop10.append(i)
+        ntop100.append(i)
         
     score = list()
     menuItem_objects=menuItem.objects.all()
     df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
-    for nindex in ntop10:
+    for nindex in ntop100:
         tempscore = 0
         top_index=menuItem_objects[nindex].link 
         if top_index!=-1:
@@ -482,59 +476,100 @@ def model3(request):
             food=list(df_food.iloc[top_index])
             food=[f.lower() for f in food]
             if food[4]==user[3]:
-                tempscore= tempscore + 1
-            if food[2]==user[1]:
-                tempscore= tempscore + 1
+                tempscore= tempscore + 0.3*(maxsim-minsim)
+            if food[2]==user[1] and user[1]=="Veg":
+                tempscore= tempscore + 10(maxsim-minsim)
+            elif food[2]==user[1] and user[1][0:3]=="Non":
+                tempscore= tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
-        tempprice = df.iloc[nindex, [2]][0]
+        # tempprice = df.iloc[nindex, [2]][0]
 
         # assigning score on the basis of rating
-        tempscore = tempscore + 1.2*(temprating/5)
-        normprice = (tempprice/830)
-        # penalise on the basis of price
-        tempscore = tempscore - 1.05*abs(normprice-tempprice)/tempprice
+        tempscore = tempscore + (maxsim-minsim)*(temprating/5)*0.8
+        # normprice = (tempprice/830)
+        # # penalise on the basis of price
+        # tempscore = tempscore - 1.05*abs(normprice-normprice)/tempprice
         score.append(tempscore)
 
-    ntop10scores=list(zip(ntop10,score))
-    sorted_scores = sorted(ntop10scores,key=lambda x: (x[1]),reverse=True)
+    ntop100scores=list(zip(ntop100,score))
+    sorted_scores = sorted(ntop100scores,key=lambda x: (x[1]),reverse=True)
+    ntop20=[x[0] for x in sorted_scores[0:20]]
 
     dishname = []
     newname = []
-    newntop10 = []
+    newntop5 = []
     # loop to retrieve dishname
-    for i in range(len(sorted_scores)):
-        i=sorted_scores[i][0]
+    for i in range(len(ntop20)):
+        i=ntop20[i]
         dishname.append(df.iloc[i, [1]][0])
 
     i = 0
     # loop to append dishes if frequency is 3
+
     for name in dishname:
         if(newname.count(name) < 2):
             newname.append(name)
-            newntop10.append(ntop10[i])
+            newntop5.append(ntop20[i])
         i = i+1
 
-    final5 = newntop10[0:5]
+    final5 = newntop5[0:5]
+
+    final10=final5
+
+
+
+    # Randomisation
+    randindices=[]
+    for i in range(100,500):
+        randindices.append(score_series[i][0])
+    randlist=random.sample(randindices, 50)
+    #randlist=np.random.randint(100,500,size=50,dtype=int)
+    ranlist50=[]
+    for i in randlist:
+        ranlist50.append([i,vector[i][1],df.iloc[i, [5]][0],df.iloc[i, [8]][0],df.iloc[i, [4]][0]])
+
+    maxsim=score_series[100][1]
+    minsim=score_series[499][1]
+    maxcount=np.max([i[3] for i in ranlist50])
+    mincount=np.min([i[3] for i in ranlist50])
+    score2 = []
+    for each in ranlist50:
+        index=each[0]   #food index
+        count=each[3]   #rating count
+        diet=each[4]    #diet
+        simscore=each[1] #similarity score
+        temprating=each[2]  #rating
+        tempscore = 0   
+        user=getUser(request)
+        user=[f.lower() for f in user]
+        if diet==user[1] and user[1]=="Veg":
+            tempscore= tempscore + 10(maxsim-minsim)
+        elif diet==user[1] and user[1][0:3]=="Non":
+            tempscore= tempscore + 0.4*(maxsim-minsim)
+
+        # assigning score on the basis of rating
+        tempscore = tempscore + (maxsim-minsim)*(temprating/5)*0.8
+        tempscore = tempscore + (maxsim-minsim)*(simscore)*0.4
+        tempscore = tempscore - (maxsim-minsim)*((count-mincount)/(maxcount-mincount))*3
+        score2.append(tempscore)
+    
+    ran50Ind=[i[0] for i in ranlist50]
+    newranlist50=list(zip(ran50Ind,score2))
+    sorted50 = sorted(newranlist50,key=lambda x: (x[1]),reverse=True)
+    randtop3=sorted50[0:3]
+    randtop3Ind=[i[0] for i in randtop3]
+    print(randtop3)
+    for i in randtop3Ind:
+        final10.append(i)
+
 
     dishes_details = []
     i = 0
-    for j in final5:
+    print(final10)
+    for j in final10:
+        print("J:",j)
         index=(df.iloc[j, [6]][0])
-        templist = []
-        templist.append(df.iloc[j, [1]][0])# name
-        templist.append(df.iloc[j, [0]][0])# category
-        templist.append(df.iloc[j, [2]][0])# price
-        templist.append(df_rest.iat[index-1,0])# restaurant
-        templist.append(df_rest.iat[index-1,1])# rest rating
-        templist.append(df_rest.iat[index-1,2])# cuisine
-        templist.append(df_rest.iat[index-1,3])# address
-        templist.append(j+1)  #food index
-        templist.append(df.iloc[j, [5]][0]) #food rating
-        i = i+1
-        #print(templist)
-        dishes_details.append(templist)
-    for j in randtop5:
-        index=(df.iloc[j, [6]][0])
+        print("Index:",index)
         templist = []
         templist.append(df.iloc[j, [1]][0])# name
         templist.append(df.iloc[j, [0]][0])# category
