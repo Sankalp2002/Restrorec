@@ -418,10 +418,10 @@ def model3(request):
         temp=""
         for i in r.features:
             temp+=(i+", ")
-        t=[r.category,r.name,r.price,r.description,r.diet,r.rating,r.restaurantId_id,temp]
+        t=[r.category,r.name,r.price,r.description,r.diet,r.rating,r.restaurantId_id,temp,r.numRatings]
         all_items.append(t)
 
-    df=pd.DataFrame(all_items,columns=['Category', 'Item Name','Price','Description','Veg/Non-veg','Rating','Restaurant Index','Feature_Vector'])
+    df=pd.DataFrame(all_items,columns=['Category', 'Item Name','Price','Description','Veg/Non-veg','Rating','Restaurant Index','Feature_Vector','Num_Ratings'])
     df_rest=pd.DataFrame(all_rests,columns=['Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
     # print(df.dtypes)
     # print(df_rest.dtypes)
@@ -450,25 +450,22 @@ def model3(request):
     indexList=[i for i in range(len(vectorList))]
     vector=list(zip(indexList,score_series))
     score_series = sorted(vector,key=lambda x: (x[1]),reverse=True)
-    # print("MAX:",pos_score_series[1])
-    # print("MIN:",neg_score_series[150])
-    # indices of top 30  dishes
-    # first position will be for dishes itself
-    # top100 = pos_score_series[1:51]
-    # bot100 = neg_score_series[0:200]
-    # topdict={}
-    # botdict={}
-    # for i in top100:
-    #     topdict.update({i[0]:i[1]})
-    # for i in bot100:
-    #     botdict.update({i[0]:i[1]})
-    # # print(top10)
-    # for i in botdict:
-    #     if i in topdict:
-    #         topdict.pop(i)
+    maxsim=score_series[0][1]
+    minsim=score_series[len(score_series)-1][1]
+    print(maxsim)
+    print(minsim)
     topdict={}
-    for i in score_series[1:51]:
+    for i in score_series[1:101]:
         topdict.update({i[0]:i[1]})
+
+    randlist=np.random.randint(101,751,size=50,dtype=int)
+    ranlist2=[]
+    for i in randlist:
+        ranlist2.append([i,vector[i][1],df.iloc[i, [5]][0],df.iloc[i, [8]][0]])
+    score_series2 = sorted(ranlist2,key=lambda x: (-x[1],-x[2],x[3]))
+    randtop5=score_series2[0:5]
+    randtop5=[i[0] for i in randtop5]
+    print(randtop5)
     ntop10 = []
     for i in topdict:
         ntop10.append(i)
@@ -522,6 +519,21 @@ def model3(request):
     dishes_details = []
     i = 0
     for j in final5:
+        index=(df.iloc[j, [6]][0])
+        templist = []
+        templist.append(df.iloc[j, [1]][0])# name
+        templist.append(df.iloc[j, [0]][0])# category
+        templist.append(df.iloc[j, [2]][0])# price
+        templist.append(df_rest.iat[index-1,0])# restaurant
+        templist.append(df_rest.iat[index-1,1])# rest rating
+        templist.append(df_rest.iat[index-1,2])# cuisine
+        templist.append(df_rest.iat[index-1,3])# address
+        templist.append(j+1)  #food index
+        templist.append(df.iloc[j, [5]][0]) #food rating
+        i = i+1
+        #print(templist)
+        dishes_details.append(templist)
+    for j in randtop5:
         index=(df.iloc[j, [6]][0])
         templist = []
         templist.append(df.iloc[j, [1]][0])# name
@@ -594,7 +606,8 @@ def registerView(request):
                 positiveFeature.append(i)
             featDict=docB.features
             for p in positiveFeature:
-                featDict.update({p:5})
+                if p!="N/P":
+                    featDict.update({p:5})
             docB.features=featDict
             docB.positiveFeature = positiveFeature
             docB.save()
@@ -665,26 +678,30 @@ def rateView(request):
             user=getUserObj(request)
             id=orderIds[i]
             item=menuItem.objects.get(itemId=id)
-            item.rating=item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1)
+            item.rating=round(item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1),1)
             item.numRatings=item.numRatings+1
             item.save()
             if int(ratings[i])>4:
                 featDict=user.features
-                for f in item.features:
-                    prewt=featDict[f]
-                    if not f in featDict:
+                feat=item.features
+                for f in feat:
+                    if f!="N/P":
                         prewt=0
-                    newwt=0.4*prewt+0.6*int(ratings[i])
-                    featDict[f]=newwt
+                        if f in featDict:
+                            prewt=featDict[f]
+                        newwt=0.4*prewt+0.6*int(ratings[i])
+                        featDict[f]=newwt
                 user.features=featDict
             if int(ratings[i])<2:
                 featDict=user.features
-                for f in item.features:
-                    prewt=featDict[f]
-                    if not f in featDict:
+                feat=item.features
+                for f in feat:
+                    if f!="N/P":
                         prewt=0
-                    newwt=0.4*prewt-0.6*int(ratings[i])
-                    featDict[f]=newwt
+                        if f in featDict:
+                            prewt=featDict[f]
+                        newwt=0.4*prewt-0.6*int(ratings[i])
+                        featDict[f]=newwt
                 user.features=featDict
             user.save()
             user=getUserObj(request)
