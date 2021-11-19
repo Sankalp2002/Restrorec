@@ -78,7 +78,9 @@ class RecoUser(models.Model):
     positiveFeature=models.JSONField(default=list)
     negativeFeature=models.JSONField(default=list)
     features=models.JSONField(default=dict)
-    
+    recentfeature = models.JSONField(default=list)
+
+
     class Meta:
         permissions=(
         )

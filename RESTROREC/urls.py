@@ -20,6 +20,7 @@ from Reco import views as rviews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('home', rviews.showModels, name='showModels'),
     # path('', views.showRecommendation, name='showRecommendation'),
     path('', include('Reco.urls')),
     path('register', rviews.registerView, name='registerView'),
