@@ -891,8 +891,7 @@ def rateView(request):
                     featDict[f][0] = new_rating
                     featDict[f][1] = pre_freq+1
                 else:
-                    featDict[f][0] = int(ratings[i])
-                    featDict[f][1] = 1
+                    featDict.update({f:[int(ratings[i]),1]})
             user.features = featDict
             user.save()
             user = getUserObj(request)
@@ -908,7 +907,7 @@ def rateView(request):
             user.negativeFeature = negList
         print(posList)
         print(negList)
-        user.recentfeatures = recent
+        user.recentfeature = recent
         user.save()
         return HttpResponseRedirect(reverse('Reco:showRest'))
     else:
