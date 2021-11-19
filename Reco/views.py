@@ -464,6 +464,8 @@ def model3(request):
     score_series = sorted(vector, key=lambda x: (x[1]), reverse=True)
     maxsim = score_series[0][1]
     minsim = score_series[len(score_series)-1][1]
+    print(maxsim)
+    print(minsim)
     topdict = {}
     for i in score_series[0:100]:
         topdict.update({i[0]: i[1]})
@@ -483,11 +485,12 @@ def model3(request):
             user = [f.lower() for f in user]
             food = list(df_food.iloc[top_index])
             food = [f.lower() for f in food]
+            food[4]=food[4].lower()
             if food[4] == user[3]:
                 tempscore = tempscore + 0.3*(maxsim-minsim)
-            if food[2] == user[1] and user[1] == "Veg":
-                tempscore = tempscore + 10*(maxsim-minsim)
-            elif food[2] == user[1] and user[1][0:3] == "Non":
+            if food[2] == user[1] and user[1][0:3] == "veg":
+                tempscore = tempscore + 10*(maxsim-minsim)+1
+            elif food[2] == user[1] and user[1][0:3] == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
         # tempprice = df.iloc[nindex, [2]][0]
@@ -530,9 +533,9 @@ def model3(request):
 
     # Randomisation
     randindices = []
-    for i in range(100, 500):
+    for i in range(100, 1000):
         randindices.append(score_series[i][0])
-    randlist = random.sample(randindices, 50)
+    randlist = random.sample(randindices, 100)
     # randlist=np.random.randint(100,500,size=50,dtype=int)
     ranlist50 = []
     for i in randlist:
@@ -547,15 +550,15 @@ def model3(request):
     for each in ranlist50:
         index = each[0]  # food index
         count = each[3]  # rating count
-        diet = each[4]  # diet
+        diet = (each[4]).lower()  # diet  
         simscore = each[1]  # similarity score
         temprating = each[2]  # rating
         tempscore = 0
         user = getUser(request)
         user = [f.lower() for f in user]
-        if diet == user[1] and user[1] == "Veg":
-            tempscore = tempscore + 50*(maxsim-minsim)
-        elif diet == user[1] and user[1][0:3] == "Non":
+        if (user[1] == "veg") and (diet == user[1]):
+            tempscore = tempscore + 1
+        elif diet == user[1] and user[1][0:3] == "non":
             tempscore = tempscore + 0.4*(maxsim-minsim)
 
         # assigning score on the basis of rating
@@ -625,9 +628,9 @@ def model3(request):
             food = [f.lower() for f in food]
             if food[4] == user[3]:
                 tempscore = tempscore + 0.3*(maxsim-minsim)
-            if food[2] == user[1] and user[1] == "Veg":
+            if (food[2]).lower() == user[1] and (user[1]).lower() == "veg":
                 tempscore = tempscore + 10*(maxsim-minsim)
-            elif food[2] == user[1] and user[1][0:3] == "Non":
+            elif (food[2]).lower() == user[1] and (user[1][0:3]).lower() == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
         # tempprice = df.iloc[nindex, [2]][0]
@@ -889,7 +892,7 @@ def rateView(request):
             user.negativeFeature = negList
         user.recentfeature = recent
         user.save()
-        return HttpResponseRedirect(reverse('Reco:showRest'))
+        return HttpResponseRedirect(reverse('showModels'))
     else:
         return render(request, 'rateFood.html',)
 
