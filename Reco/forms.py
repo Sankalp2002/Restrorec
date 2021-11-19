@@ -38,11 +38,46 @@ class userRegisterFormA(forms.ModelForm):
         fields=('username','email','password')
 
 class userRegisterFormB(forms.ModelForm):
-    CHOICES = (('potato','potato'),
-               ('paneer','paneer'),
-               ('milk','milk'),
-               ('rice','rice'),
-               ('cheese','cheese'),)
+    CHOICES = (
+        ('potato','potato'),
+        ('paneer','paneer'),
+        ('milk','milk'),
+        ('rice','rice'),
+        ('cheese','cheese'),
+        ('sugar','sugar'),
+        ('ghee','ghee'),
+        ('saffron','saffron'),
+        ('vinegar','vinegar'),
+        ('rice','rice'),
+        ('coconut','coconut'),
+        ('jaggery','jaggery'),
+        ('flour','flour'),
+        ('Rice flour','Rice flour'),
+        ('salt','salt'),
+        ('Chana dal','Chana dal'),
+        ('tomato','tomato'),
+        ('ginger','ginger'),
+        ('garlic','garlic'),
+        ('onions','onions'),
+        ('garam masala','garam masala'),
+        ('curry leaves','curry leaves'),
+        ('garam masala powder','garam masala powder'),
+        ('Whole wheat flour','Whole wheat flour'),
+        ('urad dal','urad dal'),
+        ('chilli','chilli'),
+        ('capsicum','capsicum'),
+        ('lemon','lemon'),
+        ('carrot','carrot'),
+        ('beans','beans'),
+        ('cabbage','cabbage'),
+        ('sesame','sesame'),
+        ('sauce','sauce'),
+        ('chicken','chicken'),
+        ('spring','spring'),
+        ('soya','soya'),
+        ('corn','corn'),
+        ('bell','bell'),
+    )
 
     multipleIngredients = forms.MultipleChoiceField(choices=CHOICES, widget=forms.CheckboxSelectMultiple())
 
