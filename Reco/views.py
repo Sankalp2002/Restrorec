@@ -89,7 +89,6 @@ def getUser(request):
 def getUser3(request):
     u = request.user
     uid = u.id
-    print("USER:", uid)
     ru = RecoUser.objects.get(RUser_id=uid)
     return {'positive': ru.positiveFeature, 'negative': ru.negativeFeature}
 
@@ -126,8 +125,6 @@ def model1(selected_dish):
                       'Category', 'Item Name', 'Price', 'Description', 'Veg/Non-veg', 'Rating', 'Restaurant Index'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    print(df.dtypes)
-    print(df_rest.dtypes)
     df['Description'] = df['Description'].str.lower()
     df['Description'] = df['Description'].apply(  # removing punctuation with empty string
         lambda text: text.translate(str.maketrans('', '', string.punctuation)))
@@ -155,7 +152,6 @@ def model1(selected_dish):
     # first position will be for dishes itself
     top10 = list(score_series.iloc[1:31].index)
 
-    # print(top10)
     ntop5 = []
 
     for each in top10:
@@ -228,7 +224,6 @@ def model1(selected_dish):
     for dish in rdishes:  # appending restaurant index of dish
         rindex.append(dish[1])
 
-    print(rindex)
 
     dishes_details = []
     i = 0
@@ -244,7 +239,6 @@ def model1(selected_dish):
         templist.append(df_rest.iat[index-1, 3])
 
         i = i+1
-        print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -268,8 +262,6 @@ def model2(selected_dish, request):
                       'Category', 'Item Name', 'Price', 'Description', 'Veg/Non-veg', 'Rating', 'Restaurant Index'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    # print(df.dtypes)
-    # print(df_rest.dtypes)
     df['Description'] = df['Description'].str.lower()
     df['Description'] = df['Description'].apply(  # removing punctuation with empty string
         lambda text: text.translate(str.maketrans('', '', string.punctuation)))
@@ -297,7 +289,6 @@ def model2(selected_dish, request):
     # first position will be for dishes itself
     top10 = list(score_series.iloc[1:100].index)
 
-    # print(top10)
     ntop5 = []
 
     for each in top10:
@@ -324,12 +315,6 @@ def model2(selected_dish, request):
             user = getUser(request)
             user = [f.lower() for f in user]
             food = list(df_food.iloc[top_index])
-            # print(food)
-            # print(type(food[0]))
-            # print(type(food[1]))
-            # print(type(food[2]))
-            # print(type(food[3]))
-            # print(type(food[4]))
             food = [f.lower() for f in food]
             if food[5] == user[4]:
                 tempscore = tempscore + 1
@@ -398,7 +383,6 @@ def model2(selected_dish, request):
         rindex.append(dish[1])
         dindex.append(dish[2])
 
-    print(rindex)
 
     dishes_details = []
     i = 0
@@ -415,9 +399,7 @@ def model2(selected_dish, request):
         templist.append(df_rest.iat[index-1, 3])
         templist.append(dindex[j]+1)
         templist.append(df.iloc[ntop5[i], [5]][0])
-        print(dindex[j]+1)
         i = i+1
-        # print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -454,8 +436,6 @@ def model3(request):
                                           'Veg/Non-veg', 'Rating', 'Restaurant Index', 'Feature_Vector', 'Num_Ratings'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    # print(df.dtypes)
-    # print(df_rest.dtypes)
     vectorList = list(df['Feature_Vector'])
     vectorList.append(posVector)
     vectorList.append(negVector)
@@ -484,8 +464,6 @@ def model3(request):
     score_series = sorted(vector, key=lambda x: (x[1]), reverse=True)
     maxsim = score_series[0][1]
     minsim = score_series[len(score_series)-1][1]
-    print(maxsim)
-    print(minsim)
     topdict = {}
     for i in score_series[0:100]:
         topdict.update({i[0]: i[1]})
@@ -546,7 +524,7 @@ def model3(request):
     final10 = []
     if(len(posVector)):
         final10 = final5
-
+    print(final5)
     vectorList.pop()
     vectorList.pop()
 
@@ -576,7 +554,7 @@ def model3(request):
         user = getUser(request)
         user = [f.lower() for f in user]
         if diet == user[1] and user[1] == "Veg":
-            tempscore = tempscore + 10*(maxsim-minsim)
+            tempscore = tempscore + 50*(maxsim-minsim)
         elif diet == user[1] and user[1][0:3] == "Non":
             tempscore = tempscore + 0.4*(maxsim-minsim)
 
@@ -592,7 +570,6 @@ def model3(request):
     sorted50 = sorted(newranlist50, key=lambda x: (x[1]), reverse=True)
     randtop3 = sorted50[0:3]
     randtop3Ind = [i[0] for i in randtop3]
-    print(randtop3)
     if(len(posVector)):
         for i in randtop3Ind:
             final10.append(i)
@@ -628,8 +605,6 @@ def model3(request):
     score_series = sorted(vector, key=lambda x: (x[1]), reverse=True)
     maxsim = score_series[0][1]
     minsim = score_series[len(score_series)-1][1]
-    print(maxsim)
-    print(minsim)
     topdict = {}
     for i in score_series[0:30]:
         topdict.update({i[0]: i[1]})
@@ -693,11 +668,8 @@ def model3(request):
 
     dishes_details = []
     i = 0
-    print(final10)
     for j in final10:
-        print("J:", j)
         index = (df.iloc[j, [6]][0])
-        print("Index:", index)
         templist = []
         templist.append(df.iloc[j, [1]][0])  # name
         templist.append(df.iloc[j, [0]][0])  # category
@@ -709,7 +681,6 @@ def model3(request):
         templist.append(j+1)  # food index
         templist.append(df.iloc[j, [5]][0])  # food rating
         i = i+1
-        # print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -785,15 +756,12 @@ def registerView(request):
         formB = userRegisterFormB(data=request.POST)
         if formA.is_valid() and formB.is_valid():
             docA = formA.save(commit=False)
-            # print(formB.cleaned_data['username'])
             docA.set_password(docA.password)
             docA.save()
             docB = formB.save(commit=False)
             docB.RUser = docA
             # userObj=RecoUser.objects.get(RUser.username=docA.username)
             ing = formB.cleaned_data.get('multipleIngredients')
-            print("1234567890")
-            print(ing)
             ing2 = ""
             for i in ing:
                 ing2 += i+","
@@ -834,7 +802,7 @@ def loginView(request):
                 # return HttpResponseRedirect(reverse('Blood:adminpanel'))
             elif docuser.is_active:
                 login(request, docuser)
-                return HttpResponseRedirect(reverse('Reco:showRest'))
+                return HttpResponseRedirect(reverse('showModels'))
             else:
                 return HttpResponse("Account not active")
         else:
@@ -874,8 +842,6 @@ def rateView(request):
     if request.method == 'POST':
         orderIds = request.POST.getlist('ids')
         ratings = request.POST.getlist('ratings')
-        # print(orderIds)
-        # print(ratings)
         user = getUserObj(request)
         recent = []
         for i in range(len(orderIds)):
@@ -921,9 +887,7 @@ def rateView(request):
                     negList.append(f)
             user.positiveFeature = posList
             user.negativeFeature = negList
-        print(posList)
-        print(negList)
-        user.recentfeatures = recent
+        user.recentfeature = recent
         user.save()
         return HttpResponseRedirect(reverse('Reco:showRest'))
     else:
