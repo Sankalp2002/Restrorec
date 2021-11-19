@@ -582,8 +582,7 @@ def model3(request):
         # assigning score on the basis of rating
         tempscore = tempscore + (maxsim-minsim)*(temprating/5)*0.8
         tempscore = tempscore + (maxsim-minsim)*(simscore)*0.4
-        tempscore = tempscore - (maxsim-minsim) * \
-            ((count-mincount)/(maxcount-mincount))*3
+        tempscore = tempscore - (maxsim-minsim) * ((count-mincount)/(maxcount-mincount))*3
         score2.append(tempscore)
 
     ran50Ind = [i[0] for i in ranlist50]
@@ -800,7 +799,7 @@ def registerView(request):
             featDict = docB.features
             for p in positiveFeature:
                 if p != "N/P":
-                    featDict.update({p: 5})
+                    featDict.update({p: [5,1]})
             docB.features = featDict
             docB.positiveFeature = positiveFeature
             docB.save()
@@ -863,11 +862,12 @@ def orderView(request):
         return render(request, 'rateFood.html')
 
 
-@login_required
 def rateView(request):
     if request.method == 'POST':
         orderIds = request.POST.getlist('ids')
         ratings = request.POST.getlist('ratings')
+        # print(orderIds)
+        # print(ratings)
         user = getUserObj(request)
         recent = []
         for i in range(len(orderIds)):
@@ -881,41 +881,36 @@ def rateView(request):
                 if j not in recent:
                     recent.append(j)
             item.save()
-            if int(ratings[i]) > 4:
-                featDict = user.features
-                feat = item.features
-                for f in feat:
-                    prewt = 0
-                    if f in featDict:
-                        prewt = featDict[f]
-                    newwt = 0.6*prewt+0.4*int(ratings[i])
-                    featDict[f] = newwt
-                user.features = featDict
-            if int(ratings[i]) < 2:
-                featDict = user.features
-                feat = item.features
-                for f in feat:
-                    prewt = 0
-                    if f in featDict:
-                        prewt = featDict[f]
-                    newwt = 0.6*prewt-0.4*int(ratings[i])
-                    featDict[f] = newwt
-                user.features = featDict
+            featDict = user.features
+            feat = item.features
+            for f in feat:
+                if f in featDict:
+                    pre_rating = featDict[f][0]
+                    pre_freq = featDict[f][1]
+                    new_rating = pre_rating + (int(ratings[i])-pre_rating)/(pre_freq+1)
+                    featDict[f][0] = new_rating
+                    featDict[f][1] = pre_freq+1
+                else:
+                    featDict[f][0] = int(ratings[i])
+                    featDict[f][1] = 1
+            user.features = featDict
             user.save()
             user = getUserObj(request)
             featDict = user.features
             posList = []
             negList = []
             for f in featDict:
-                if featDict[f] > 4:
+                if featDict[f][0] > 4.5:
                     posList.append(f)
-                if featDict[f] < 2:
+                if featDict[f][0] < 1.5:
                     negList.append(f)
             user.positiveFeature = posList
             user.negativeFeature = negList
-        user.recentfeature = recent
+        print(posList)
+        print(negList)
+        user.recentfeatures = recent
         user.save()
-        return HttpResponseRedirect(reverse('showModels'))
+        return HttpResponseRedirect(reverse('Reco:showRest'))
     else:
         return render(request, 'rateFood.html',)
 
