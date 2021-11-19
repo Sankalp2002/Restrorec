@@ -24,8 +24,7 @@ from django.contrib.auth import authenticate, login, logout
 # from settings import STATIC_DIR
 # Create your views here.
 
-
-def initial():
+def load_rest():
     df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
     df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
     df_rest.columns = ['Name', 'Rating',
@@ -37,6 +36,14 @@ def initial():
         Restaurant.objects.get_or_create(
             name=row[0], rating=row[1], cuisine=row[2], address=row[3], totalRatings=row[4])
 
+def load_items():
+    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
+    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
+    df_rest.columns = ['Name', 'Rating',
+                       'Cuisine', 'Address', 'No. of Ratings']
+    rest_list = df_rest.values.tolist()
+    item_list = df_item.values.tolist()
+
     for row in item_list:
         t = row[6]
         if t < 24:
@@ -45,6 +52,24 @@ def initial():
         else:
             menuItem.objects.get_or_create(
                 category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t-1)
+
+def load_item_vectors():
+    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    allitems = menuItem.objects.all()
+    for items in allitems:
+        link=items.link
+        food=list(df_food.iloc[link])
+        ing2=food[1]
+        ing = ing2.split(', ')
+        features=[]
+        for i in ing:
+            features.append(i)
+        if food[3]!='-1':
+            features.append(food[3])
+        if food[5]!='-1':
+            features.append(food[5])
+        items.features=features
+        items.save()
 
 
 def foodfun(fname):
@@ -416,7 +441,6 @@ def model3(request):
     for i in negVector:
         temp += (i+", ")
     negVector = temp
-    nltk.download('stopwords')
     all_rest = Restaurant.objects.all()
     all_item = menuItem.objects.all()
     all_items = []
@@ -440,12 +464,6 @@ def model3(request):
     vectorList.append(posVector)
     vectorList.append(negVector)
     vectorList = [v.lower() for v in vectorList]
-    # vectorList= [v.apply(
-    #     lambda text: text.translate(str.maketrans('', '', string.punctuation))) for v in vectorList]
-
-    STOPWORDS = set(stopwords.words('english'))  # loading stopwords of english
-    # vectorList= vectorList.apply(lambda text: " ".join(  # remving stopwords from description
-    #     [word for word in str(text).split() if word not in STOPWORDS]))
 
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(
         1, 2), min_df=0, stop_words='english')
@@ -699,6 +717,11 @@ def showModels(request):
             rest = Restaurant.objects.all()
         return render(request, 'main.html', {'rest': rest,'m':m})
     else:
+        items = Restaurant.objects.all()
+        if len(items) == 0:
+            load_rest()
+            load_items()
+            load_item_vectors()
         return render(request, 'chooseModel.html')
 
 @login_required
