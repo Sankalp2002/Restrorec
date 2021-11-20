@@ -899,9 +899,9 @@ def rateView(request):
             posList = []
             negList = []
             for f in featDict:
-                if featDict[f][0] > 4.5:
+                if featDict[f][0] > 4:
                     posList.append(f)
-                if featDict[f][0] < 1.5:
+                if featDict[f][0] < 2:
                     negList.append(f)
             user.positiveFeature = posList
             user.negativeFeature = negList
