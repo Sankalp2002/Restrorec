@@ -24,8 +24,7 @@ from django.contrib.auth import authenticate, login, logout
 # from settings import STATIC_DIR
 # Create your views here.
 
-
-def initial():
+def load_rest():
     df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
     df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
     df_rest.columns = ['Name', 'Rating',
@@ -37,6 +36,14 @@ def initial():
         Restaurant.objects.get_or_create(
             name=row[0], rating=row[1], cuisine=row[2], address=row[3], totalRatings=row[4])
 
+def load_items():
+    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
+    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
+    df_rest.columns = ['Name', 'Rating',
+                       'Cuisine', 'Address', 'No. of Ratings']
+    rest_list = df_rest.values.tolist()
+    item_list = df_item.values.tolist()
+
     for row in item_list:
         t = row[6]
         if t < 24:
@@ -45,6 +52,24 @@ def initial():
         else:
             menuItem.objects.get_or_create(
                 category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t-1)
+
+def load_item_vectors():
+    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    allitems = menuItem.objects.all()
+    for items in allitems:
+        link=items.link
+        food=list(df_food.iloc[link])
+        ing2=food[1]
+        ing = ing2.split(', ')
+        features=[]
+        for i in ing:
+            features.append(i)
+        if food[3]!='-1':
+            features.append(food[3])
+        if food[5]!='-1':
+            features.append(food[5])
+        items.features=features
+        items.save()
 
 
 def foodfun(fname):
@@ -89,7 +114,6 @@ def getUser(request):
 def getUser3(request):
     u = request.user
     uid = u.id
-    print("USER:", uid)
     ru = RecoUser.objects.get(RUser_id=uid)
     return {'positive': ru.positiveFeature, 'negative': ru.negativeFeature}
 
@@ -126,8 +150,6 @@ def model1(selected_dish):
                       'Category', 'Item Name', 'Price', 'Description', 'Veg/Non-veg', 'Rating', 'Restaurant Index'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    print(df.dtypes)
-    print(df_rest.dtypes)
     df['Description'] = df['Description'].str.lower()
     df['Description'] = df['Description'].apply(  # removing punctuation with empty string
         lambda text: text.translate(str.maketrans('', '', string.punctuation)))
@@ -155,7 +177,6 @@ def model1(selected_dish):
     # first position will be for dishes itself
     top10 = list(score_series.iloc[1:31].index)
 
-    # print(top10)
     ntop5 = []
 
     for each in top10:
@@ -228,7 +249,6 @@ def model1(selected_dish):
     for dish in rdishes:  # appending restaurant index of dish
         rindex.append(dish[1])
 
-    print(rindex)
 
     dishes_details = []
     i = 0
@@ -244,7 +264,6 @@ def model1(selected_dish):
         templist.append(df_rest.iat[index-1, 3])
 
         i = i+1
-        print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -268,8 +287,6 @@ def model2(selected_dish, request):
                       'Category', 'Item Name', 'Price', 'Description', 'Veg/Non-veg', 'Rating', 'Restaurant Index'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    # print(df.dtypes)
-    # print(df_rest.dtypes)
     df['Description'] = df['Description'].str.lower()
     df['Description'] = df['Description'].apply(  # removing punctuation with empty string
         lambda text: text.translate(str.maketrans('', '', string.punctuation)))
@@ -297,7 +314,6 @@ def model2(selected_dish, request):
     # first position will be for dishes itself
     top10 = list(score_series.iloc[1:100].index)
 
-    # print(top10)
     ntop5 = []
 
     for each in top10:
@@ -324,12 +340,6 @@ def model2(selected_dish, request):
             user = getUser(request)
             user = [f.lower() for f in user]
             food = list(df_food.iloc[top_index])
-            # print(food)
-            # print(type(food[0]))
-            # print(type(food[1]))
-            # print(type(food[2]))
-            # print(type(food[3]))
-            # print(type(food[4]))
             food = [f.lower() for f in food]
             if food[5] == user[4]:
                 tempscore = tempscore + 1
@@ -398,7 +408,6 @@ def model2(selected_dish, request):
         rindex.append(dish[1])
         dindex.append(dish[2])
 
-    print(rindex)
 
     dishes_details = []
     i = 0
@@ -415,9 +424,7 @@ def model2(selected_dish, request):
         templist.append(df_rest.iat[index-1, 3])
         templist.append(dindex[j]+1)
         templist.append(df.iloc[ntop5[i], [5]][0])
-        print(dindex[j]+1)
         i = i+1
-        # print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -434,7 +441,6 @@ def model3(request):
     for i in negVector:
         temp += (i+", ")
     negVector = temp
-    nltk.download('stopwords')
     all_rest = Restaurant.objects.all()
     all_item = menuItem.objects.all()
     all_items = []
@@ -454,18 +460,10 @@ def model3(request):
                                           'Veg/Non-veg', 'Rating', 'Restaurant Index', 'Feature_Vector', 'Num_Ratings'])
     df_rest = pd.DataFrame(all_rests, columns=[
                            'Name', 'Rating', 'Cuisine', 'Address', 'No. of Ratings'])
-    # print(df.dtypes)
-    # print(df_rest.dtypes)
     vectorList = list(df['Feature_Vector'])
     vectorList.append(posVector)
     vectorList.append(negVector)
     vectorList = [v.lower() for v in vectorList]
-    # vectorList= [v.apply(
-    #     lambda text: text.translate(str.maketrans('', '', string.punctuation))) for v in vectorList]
-
-    STOPWORDS = set(stopwords.words('english'))  # loading stopwords of english
-    # vectorList= vectorList.apply(lambda text: " ".join(  # remving stopwords from description
-    #     [word for word in str(text).split() if word not in STOPWORDS]))
 
     tfidf = TfidfVectorizer(analyzer='word', ngram_range=(
         1, 2), min_df=0, stop_words='english')
@@ -505,11 +503,12 @@ def model3(request):
             user = [f.lower() for f in user]
             food = list(df_food.iloc[top_index])
             food = [f.lower() for f in food]
+            food[4]=food[4].lower()
             if food[4] == user[3]:
                 tempscore = tempscore + 0.3*(maxsim-minsim)
-            if food[2] == user[1] and user[1] == "Veg":
-                tempscore = tempscore + 10*(maxsim-minsim)
-            elif food[2] == user[1] and user[1][0:3] == "Non":
+            if food[2] == user[1] and user[1][0:3] == "veg":
+                tempscore = tempscore + 10*(maxsim-minsim)+1
+            elif food[2] == user[1] and user[1][0:3] == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
         # tempprice = df.iloc[nindex, [2]][0]
@@ -546,15 +545,15 @@ def model3(request):
     final10 = []
     if(len(posVector)):
         final10 = final5
-
+    print(final5)
     vectorList.pop()
     vectorList.pop()
 
     # Randomisation
     randindices = []
-    for i in range(100, 500):
+    for i in range(100, 1000):
         randindices.append(score_series[i][0])
-    randlist = random.sample(randindices, 50)
+    randlist = random.sample(randindices, 100)
     # randlist=np.random.randint(100,500,size=50,dtype=int)
     ranlist50 = []
     for i in randlist:
@@ -569,22 +568,21 @@ def model3(request):
     for each in ranlist50:
         index = each[0]  # food index
         count = each[3]  # rating count
-        diet = each[4]  # diet
+        diet = (each[4]).lower()  # diet  
         simscore = each[1]  # similarity score
         temprating = each[2]  # rating
         tempscore = 0
         user = getUser(request)
         user = [f.lower() for f in user]
-        if diet == user[1] and user[1] == "Veg":
-            tempscore = tempscore + 10*(maxsim-minsim)
-        elif diet == user[1] and user[1][0:3] == "Non":
+        if (user[1] == "veg") and (diet == user[1]):
+            tempscore = tempscore + 1
+        elif diet == user[1] and user[1][0:3] == "non":
             tempscore = tempscore + 0.4*(maxsim-minsim)
 
         # assigning score on the basis of rating
         tempscore = tempscore + (maxsim-minsim)*(temprating/5)*0.8
         tempscore = tempscore + (maxsim-minsim)*(simscore)*0.4
-        tempscore = tempscore - (maxsim-minsim) * \
-            ((count-mincount)/(maxcount-mincount))*3
+        tempscore = tempscore - (maxsim-minsim) * ((count-mincount)/(maxcount-mincount))*3
         score2.append(tempscore)
 
     ran50Ind = [i[0] for i in ranlist50]
@@ -592,7 +590,6 @@ def model3(request):
     sorted50 = sorted(newranlist50, key=lambda x: (x[1]), reverse=True)
     randtop3 = sorted50[0:3]
     randtop3Ind = [i[0] for i in randtop3]
-    print(randtop3)
     if(len(posVector)):
         for i in randtop3Ind:
             final10.append(i)
@@ -628,8 +625,6 @@ def model3(request):
     score_series = sorted(vector, key=lambda x: (x[1]), reverse=True)
     maxsim = score_series[0][1]
     minsim = score_series[len(score_series)-1][1]
-    print(maxsim)
-    print(minsim)
     topdict = {}
     for i in score_series[0:30]:
         topdict.update({i[0]: i[1]})
@@ -650,9 +645,9 @@ def model3(request):
             food = [f.lower() for f in food]
             if food[4] == user[3]:
                 tempscore = tempscore + 0.3*(maxsim-minsim)
-            if food[2] == user[1] and user[1] == "Veg":
+            if (food[2]).lower() == user[1] and (user[1]).lower() == "veg":
                 tempscore = tempscore + 10*(maxsim-minsim)
-            elif food[2] == user[1] and user[1][0:3] == "Non":
+            elif (food[2]).lower() == user[1] and (user[1][0:3]).lower() == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
         # tempprice = df.iloc[nindex, [2]][0]
@@ -693,11 +688,8 @@ def model3(request):
 
     dishes_details = []
     i = 0
-    print(final10)
     for j in final10:
-        print("J:", j)
         index = (df.iloc[j, [6]][0])
-        print("Index:", index)
         templist = []
         templist.append(df.iloc[j, [1]][0])  # name
         templist.append(df.iloc[j, [0]][0])  # category
@@ -709,7 +701,6 @@ def model3(request):
         templist.append(j+1)  # food index
         templist.append(df.iloc[j, [5]][0])  # food rating
         i = i+1
-        # print(templist)
         dishes_details.append(templist)
     return dishes_details
 
@@ -725,6 +716,11 @@ def showModels(request):
             rest = Restaurant.objects.all()
         return render(request, 'main.html', {'rest': rest,'m':m})
     else:
+        items = Restaurant.objects.all()
+        if len(items) == 0:
+            load_rest()
+            load_items()
+            load_item_vectors()
         return render(request, 'chooseModel.html')
 
 @login_required
@@ -785,15 +781,12 @@ def registerView(request):
         formB = userRegisterFormB(data=request.POST)
         if formA.is_valid() and formB.is_valid():
             docA = formA.save(commit=False)
-            # print(formB.cleaned_data['username'])
             docA.set_password(docA.password)
             docA.save()
             docB = formB.save(commit=False)
             docB.RUser = docA
             # userObj=RecoUser.objects.get(RUser.username=docA.username)
             ing = formB.cleaned_data.get('multipleIngredients')
-            print("1234567890")
-            print(ing)
             ing2 = ""
             for i in ing:
                 ing2 += i+","
@@ -806,7 +799,7 @@ def registerView(request):
             featDict = docB.features
             for p in positiveFeature:
                 if p != "N/P":
-                    featDict.update({p: 5})
+                    featDict.update({p: [5,1]})
             docB.features = featDict
             docB.positiveFeature = positiveFeature
             docB.save()
@@ -834,7 +827,7 @@ def loginView(request):
                 # return HttpResponseRedirect(reverse('Blood:adminpanel'))
             elif docuser.is_active:
                 login(request, docuser)
-                return HttpResponseRedirect(reverse('Reco:showRest'))
+                return HttpResponseRedirect(reverse('showModels'))
             else:
                 return HttpResponse("Account not active")
         else:
@@ -869,7 +862,6 @@ def orderView(request):
         return render(request, 'rateFood.html')
 
 
-@login_required
 def rateView(request):
     if request.method == 'POST':
         orderIds = request.POST.getlist('ids')
@@ -889,41 +881,33 @@ def rateView(request):
                 if j not in recent:
                     recent.append(j)
             item.save()
-            if int(ratings[i]) > 4:
-                featDict = user.features
-                feat = item.features
-                for f in feat:
-                    prewt = 0
-                    if f in featDict:
-                        prewt = featDict[f]
-                    newwt = 0.6*prewt+0.4*int(ratings[i])
-                    featDict[f] = newwt
-                user.features = featDict
-            if int(ratings[i]) < 2:
-                featDict = user.features
-                feat = item.features
-                for f in feat:
-                    prewt = 0
-                    if f in featDict:
-                        prewt = featDict[f]
-                    newwt = 0.6*prewt-0.4*int(ratings[i])
-                    featDict[f] = newwt
-                user.features = featDict
+            featDict = user.features
+            feat = item.features
+            for f in feat:
+                if f in featDict:
+                    pre_rating = featDict[f][0]
+                    pre_freq = featDict[f][1]
+                    new_rating = pre_rating + (int(ratings[i])-pre_rating)/(pre_freq+1)
+                    featDict[f][0] = new_rating
+                    featDict[f][1] = pre_freq+1
+                else:
+                    featDict.update({f:[int(ratings[i]),1]})
+            user.features = featDict
             user.save()
             user = getUserObj(request)
             featDict = user.features
             posList = []
             negList = []
             for f in featDict:
-                if featDict[f] > 4:
+                if featDict[f][0] > 4:
                     posList.append(f)
-                if featDict[f] < 2:
+                if featDict[f][0] < 2:
                     negList.append(f)
             user.positiveFeature = posList
             user.negativeFeature = negList
         print(posList)
         print(negList)
-        user.recentfeatures = recent
+        user.recentfeature = recent
         user.save()
         return HttpResponseRedirect(reverse('Reco:showRest'))
     else:
