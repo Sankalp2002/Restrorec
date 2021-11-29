@@ -504,7 +504,7 @@ def model3(request):
             food = list(df_food.iloc[top_index])
             food = [f.lower() for f in food]
             food[4]=food[4].lower()
-            if food[4] == user[3]:
+            if food[4] == user[3]:                   # state
                 tempscore = tempscore + 0.3*(maxsim-minsim)
             if food[2] == user[1] and user[1][0:3] == "veg":
                 tempscore = tempscore + 10*(maxsim-minsim)+1
@@ -559,21 +559,30 @@ def model3(request):
     for i in randlist:
         ranlist50.append([i, vector[i][1], df.iloc[i, [5]][0],
                           df.iloc[i, [8]][0], df.iloc[i, [4]][0]])
-
+    # print(ranlist50)
     maxsim = score_series[100][1]
     minsim = score_series[499][1]
     maxcount = np.max([i[3] for i in ranlist50])
     mincount = np.min([i[3] for i in ranlist50])
     score2 = []
     for each in ranlist50:
+        user = getUser(request)
+        user = [f.lower() for f in user]
+
+        sim_index = menuItem_objects[each[0]].link
+        sim_food = list(df_food.iloc[sim_index])
+        sim_food = [f.lower() for f in sim_food]
+        sim_food[4]=sim_food[4].lower()
+        if sim_food[4] == user[3]:
+            tempscore = tempscore + 0.4*(maxsim-minsim) #state
+
         index = each[0]  # food index
         count = each[3]  # rating count
         diet = (each[4]).lower()  # diet  
         simscore = each[1]  # similarity score
         temprating = each[2]  # rating
+
         tempscore = 0
-        user = getUser(request)
-        user = [f.lower() for f in user]
         if (user[1] == "veg") and (diet == user[1]):
             tempscore = tempscore + 1
         elif diet == user[1] and user[1][0:3] == "non":
@@ -675,7 +684,7 @@ def model3(request):
     # loop to append dishes if frequency is 3
 
     for name in dishname:
-        if(newname.count(name) < 2):
+        if(newname.count(name) < 1):
             newname.append(name)
             newntop.append(ntop20[i])
         i = i+1
@@ -842,8 +851,12 @@ def profileView(request):
     u = request.user
     uid = u.id
     ru = RecoUser.objects.get(RUser_id=uid)
+    tenratings=ru.pastRatings
+    currSatisfaction="Not Available"
+    if len(tenratings)>0:
+        currSatisfaction=round(sum(tenratings)/len(tenratings),1)
     # ing=ru.ingredient
-    return render(request, 'myprofile.html', {'User': ru})
+    return render(request, 'myprofile.html', {'User': ru,'sat':currSatisfaction})
 
 
 @login_required
@@ -870,8 +883,10 @@ def rateView(request):
         # print(ratings)
         user = getUserObj(request)
         recent = []
+        tenratings=user.pastRatings
         for i in range(len(orderIds)):
             id = orderIds[i]
+            tenratings.append(int(ratings[i]))
             item = menuItem.objects.get(itemId=id)
             item.rating = round(
                 item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1), 1)
@@ -883,13 +898,13 @@ def rateView(request):
             item.save()
             featDict = user.features
             feat = item.features
+            print(featDict)
             for f in feat:
                 if f in featDict:
                     pre_rating = featDict[f][0]
                     pre_freq = featDict[f][1]
                     new_rating = pre_rating + (int(ratings[i])-pre_rating)/(pre_freq+1)
-                    featDict[f][0] = new_rating
-                    featDict[f][1] = pre_freq+1
+                    featDict.update({f:[int(new_rating),pre_freq+1]})
                 else:
                     featDict.update({f:[int(ratings[i]),1]})
             user.features = featDict
@@ -905,8 +920,11 @@ def rateView(request):
                     negList.append(f)
             user.positiveFeature = posList
             user.negativeFeature = negList
-        print(posList)
-        print(negList)
+            user.save()
+        # print(posList)
+        # print(negList)
+        tenratings=tenratings[-10:]
+        user.pastRatings=tenratings
         user.recentfeature = recent
         user.save()
         return HttpResponseRedirect(reverse('Reco:showRest'))

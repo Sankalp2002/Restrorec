@@ -79,7 +79,7 @@ class RecoUser(models.Model):
     negativeFeature=models.JSONField(default=list)
     features=models.JSONField(default=dict)
     recentfeature = models.JSONField(default=list)
-
+    pastRatings = models.JSONField(default=list)
 
     class Meta:
         permissions=(
@@ -95,7 +95,6 @@ class Restaurant(models.Model):
     cuisine = models.CharField(max_length=64)
     rating = models.FloatField()
     totalRatings = models.CharField(max_length=64)
-
     def __str__(self):
         return self.name
 
