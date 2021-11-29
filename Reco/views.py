@@ -342,18 +342,18 @@ def model2(selected_dish, request):
             food = list(df_food.iloc[top_index])
             food = [f.lower() for f in food]
             if food[5] == user[4]:
-                tempscore = tempscore + 1
+                tempscore = tempscore + 0.2
             if food[4] == user[3]:
-                tempscore = tempscore + 1
+                tempscore = tempscore + 0.2
             if food[3] == user[2]:
-                tempscore = tempscore + 1
+                tempscore = tempscore + 0.2
             if food[2][0:3] == user[1][0:3]:
                 tempscore = tempscore + 1
             fing = food[1].split(', ')
             uing = user[0].split(',')
             for u in uing:
                 if u in fing:
-                    tempscore = tempscore+5
+                    tempscore = tempscore+0.1
         # retriving veg/nonveg of dish
         veg = df.iloc[nindex, [4]][0]
         # retriving category of dish
@@ -719,9 +719,11 @@ def showModels(request):
     if request.method == 'POST':
         m=request.POST.get('model')
         if m=='3':
+            # print("Model3")
             dishes=model3(request)
             return render(request, 'display.html', {'dishes': dishes, 'User': request.user})
         else:
+            # print("Model12")
             rest = Restaurant.objects.all()
         return render(request, 'main.html', {'rest': rest,'m':m})
     else:
@@ -735,22 +737,6 @@ def showModels(request):
 @login_required
 def showRest(request):
     if request.method == 'POST':
-        # df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
-        # allitems = menuItem.objects.all()
-        # for items in allitems:
-        #     link=items.link
-        #     food=list(df_food.iloc[link])
-        #     ing2=food[1]
-        #     ing = ing2.split(', ')
-        #     features=[]
-        #     for i in ing:
-        #         features.append(i)
-        #     if food[3]!='-1':
-        #         features.append(food[3])
-        #     if food[5]!='-1':
-        #         features.append(food[5])
-        #     items.features=features
-        #     items.save()
         d = request.POST.get("restaurant")
         m=request.POST.get('model')
         menu = menuItem.objects.filter(restaurantId=d)
@@ -763,23 +749,14 @@ def showRest(request):
 @login_required
 def showMenu(request):
     if request.method == 'POST':
-        d = int(request.POST.get("restaurant"))
+        d = int(request.POST.get("selected_item"))
         m=request.POST.get('model')
-        if m==1:
+        if m=='1':
             dishes = model1(d-1)
         else:
-            dishes = model3(request)
-        # dishes=model2(d-1,request)
-        # user=getUserObj(request)
-        # posList=user.positiveFeature
-        # featDict=user.features
-        # for p in posList:
-        #     featDict.update({p:5})
-        # user.features=featDict
-        # user.save()
+            dishes = model2(d-1,request)
         return render(request, 'display.html', {'dishes': dishes, 'User': request.user})
     else:
-        # all_rest=list(Restaurant.objects.all())
         return render(request, 'main.html',)
 
 
@@ -794,7 +771,6 @@ def registerView(request):
             docA.save()
             docB = formB.save(commit=False)
             docB.RUser = docA
-            # userObj=RecoUser.objects.get(RUser.username=docA.username)
             ing = formB.cleaned_data.get('multipleIngredients')
             ing2 = ""
             for i in ing:
@@ -832,8 +808,6 @@ def loginView(request):
         if docuser:
             if docuser.is_active and docuser.is_superuser:
                 return(HttpResponse("Invalid login details!"))
-                # login(request,docuser)
-                # return HttpResponseRedirect(reverse('Blood:adminpanel'))
             elif docuser.is_active:
                 login(request, docuser)
                 return HttpResponseRedirect(reverse('showModels'))
@@ -855,7 +829,6 @@ def profileView(request):
     currSatisfaction="Not Available"
     if len(tenratings)>0:
         currSatisfaction=round(sum(tenratings)/len(tenratings),1)
-    # ing=ru.ingredient
     return render(request, 'myprofile.html', {'User': ru,'sat':currSatisfaction})
 
 
@@ -871,7 +844,6 @@ def orderView(request):
             orders.append([name, price, resto, id])
         return render(request, 'rateFood.html', {'orders': orders})
     else:
-        # form=ratingForm()
         return render(request, 'rateFood.html')
 
 
@@ -927,7 +899,7 @@ def rateView(request):
         user.pastRatings=tenratings
         user.recentfeature = recent
         user.save()
-        return HttpResponseRedirect(reverse('Reco:showRest'))
+        return HttpResponseRedirect(reverse('showModels'))
     else:
         return render(request, 'rateFood.html',)
 

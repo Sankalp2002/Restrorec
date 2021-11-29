@@ -9,7 +9,7 @@
     <h3> Choose a Menu Item to get similar recommendations</h3>
     <form class="form-group" action="{% url 'Reco:showMenu' %}" method="POST">
         {% csrf_token %}
-        <select name="restaurant" id="select_restaurant" class="form-control" style="width: 20rem;">
+        <select name="selected_item" id="selected_item" class="form-control" style="width: 20rem;">
             {% for t in menu %}
             <option value={{t.itemId}}>{{t.name}}</option>
             {% endfor %}
