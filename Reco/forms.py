@@ -61,7 +61,6 @@ class userRegisterFormB(forms.ModelForm):
         ('onions','onions'),
         ('garam masala','garam masala'),
         ('curry leaves','curry leaves'),
-        ('garam masala powder','garam masala powder'),
         ('Whole wheat flour','Whole wheat flour'),
         ('urad dal','urad dal'),
         ('chilli','chilli'),
@@ -76,10 +75,10 @@ class userRegisterFormB(forms.ModelForm):
         ('spring','spring'),
         ('soya','soya'),
         ('corn','corn'),
-        ('bell','bell'),
+        ('bell','bell pepper'),
     )
 
-    multipleIngredients = forms.MultipleChoiceField(choices=CHOICES, widget=forms.CheckboxSelectMultiple())
+    multipleIngredients = forms.MultipleChoiceField(choices=CHOICES, widget=forms.CheckboxSelectMultiple(),label='Choose Preferred Ingredients')
 
     def clean_age(self):
         data=self.cleaned_data['age']
