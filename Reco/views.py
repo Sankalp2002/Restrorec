@@ -393,7 +393,7 @@ def model2(selected_dish, request):
 
     # loop to append dishes if frequency is 3
     for name in dishname:
-        if(newname.count(name) < 2):
+        if(newname.count(name) < 1):
             newname.append(name)
             newridshes.append(rdishes[i])
             newntop5.append(ntop5[i])
@@ -434,12 +434,12 @@ def model3(request):
     posVector = featDict['positive']
     temp = ""
     for i in posVector:
-        temp += (i+", ")
+        temp += (i+" ")
     posVector = temp
     negVector = featDict['negative']
     temp = ""
     for i in negVector:
-        temp += (i+", ")
+        temp += (i+" ")
     negVector = temp
     all_rest = Restaurant.objects.all()
     all_item = menuItem.objects.all()
@@ -451,7 +451,7 @@ def model3(request):
     for r in all_item:
         temp = ""
         for i in r.features:
-            temp += (i+", ")
+            temp += (i+" ")
         t = [r.category, r.name, r.price, r.description, r.diet,
              r.rating, r.restaurantId_id, temp, r.numRatings]
         all_items.append(t)
