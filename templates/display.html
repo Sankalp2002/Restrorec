@@ -8,60 +8,47 @@
     <!-- <h3> Logged in as User.username </h3> -->
     <h3 class="whiteh3"> Our recommendations for you:</h3>
     <div>
-        <!-- <div class="tablecontainer">
-            {% for t in dishes %}
-                <div class="rowcontainer">
-                    <div class="rowitem"><input type="checkbox" name="order" value="{{t.7}}" id="{{t.7}}">
-                    </div>
-                    <div class="rowitem"><label for="{{t.7}}">{{t.0}}</label>
-                    </div>
-                    <div class="rowitem">{{t.5}}
-                    </div>
-                    <div class="rowitem">{{t.2}}
-                    </div>
-                    <div class="rowitem">{{t.3}}
-                    </div>
-                    <div class="rowitem">{{t.8}}
-                    </div>
-                    <div class="rowitem">{{t.6}}
-                    </div>
-                </div>
-            {% endfor %}
-        </div> -->
+        
 
         <form class="form-group" action="{% url 'Reco:orderView' %}" method="POST">
             {% csrf_token %}
-        <table class="table table-light table-hover table-bordered table-striped">
-            <thead class="bg-info">
-                <tr>
-                    <th scope="col">Select</th>
-                    <th scope="col">Item Name</th>
-                    <th scope="col">Cuisine</th>    
-                    <th scope="col">Price(INR)</th>
-                    <th scope="col">Restaurant</th>
-                    <th scope="col">Rating</th>
-                    <th scope="col">Address</th>
-                </tr>
-            </thead>
-            <tbody>
-            
-                
-            {% for t in dishes %}
-                <tr>
-                    <td> <input type="checkbox" name="order" value="{{t.7}}" id="{{t.7}}"> </td>
-                    <td> <label for="{{t.7}}">{{t.0}}</label> </td>
-                    <td>{{t.5}}</td>
-                    <td>{{t.2}}</td>
-                    <td>{{t.3}}</td>
-                    <td>{{t.8}}</td>
-                    <td>{{t.6}}</td>
-                </tr>
-            {% endfor %}
-    
-            </tbody>
-        
-        </table>
-        <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin: 1rem 0 0 0.5rem; " >Place Order</button>
+            <div class="tablecontainer">
+                <div class="rowhead">
+                    <div class="sitem">Select
+                    </div>
+                    <div class="litem">Item Name
+                    </div>
+                    <div class="mitem">Cuisine
+                    </div>
+                    <div class="sitem">Price
+                    </div>
+                    <div class="mitem">Restaurant
+                    </div>
+                    <div class="sitem">Rating
+                    </div>
+                    <div class="litem">Address
+                    </div>
+                </div>
+        {% for t in dishes %}
+            <div class="rowcontainer">
+                <div class="sitem"><input type="checkbox" name="order" value="{{t.7}}" id="{{t.7}}" class="checkbo">
+                </div>
+                <div class="litem"><label for="{{t.7}}">{{t.0}}</label>
+                </div>
+                <div class="mitem">{{t.5}}
+                </div>
+                <div class="sitem">{{t.2}}
+                </div>
+                <div class="mitem">{{t.3}}
+                </div>
+                <div class="sitem">{{t.8}}
+                </div>
+                <div class="litem">{{t.6}}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+        <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin: 1rem 0 0 0.5rem; " >Rate Recommendations</button>
         </form>
         
     </div>
