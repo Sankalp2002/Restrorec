@@ -516,7 +516,7 @@ def model3(request):
             if food[2] == user[1] and user[1][0:3] == "veg":
                 tempscore = tempscore + 10*(maxsim-minsim)+2
             elif food[2] == user[1] and user[1][0:3] == "non":
-                tempscore = tempscore + 0.4*(maxsim-minsim)
+                tempscore = tempscore + 2*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
         # tempprice = df.iloc[nindex, [2]][0]
 
@@ -592,7 +592,7 @@ def model3(request):
         if (user[1] == "veg") and (diet == user[1]):
             tempscore = tempscore + 2
         elif diet == user[1] and user[1][0:3] == "non":
-            tempscore = tempscore + 0.4*(maxsim-minsim)
+            tempscore = tempscore + 1*(maxsim-minsim)
 
         # assigning score on the basis of rating
         tempscore = tempscore + (maxsim-minsim)*(temprating/5)*0.8
