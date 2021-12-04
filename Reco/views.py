@@ -183,7 +183,7 @@ def model1(selected_dish):
         if(each != idx):
             # appending tuple of (item name,restaurant index) to rdishes
             if (df.iloc[each, [1]][0], df.iloc[each, [6]][0]) not in rdishes:
-                rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0]))
+                rdishes.append((df.iloc[each, [1]][0], df.iloc[each, [6]][0],each))
                 ntop5.append(each)
 
     # st.write(ntop5)
@@ -235,7 +235,7 @@ def model1(selected_dish):
 
     # loop to append dishes if frequency is 3
     for name in dishname:
-        if(newname.count(name) <= 2):
+        if(newname.count(name) <1):
             newname.append(name)
             newridshes.append(rdishes[i])
             newntop5.append(ntop5[i])
@@ -245,14 +245,16 @@ def model1(selected_dish):
     ntop5 = newntop5[0:10]
     # st.write(rdishes)
     rindex = []  # list for restaurant index
-
+    dindex = []
     for dish in rdishes:  # appending restaurant index of dish
         rindex.append(dish[1])
+        dindex.append(dish[2])
 
 
     dishes_details = []
     i = 0
-    for index in rindex:
+    for j in range(len(rindex)):
+        index = rindex[j]
         templist = []
         templist.append(rdishes[i][0])  # dishname
         templist.append(df.iloc[ntop5[i], [0]][0])
@@ -262,7 +264,8 @@ def model1(selected_dish):
         templist.append(df_rest.iat[index-1, 1])
         templist.append(df_rest.iat[index-1, 2])
         templist.append(df_rest.iat[index-1, 3])
-
+        templist.append(dindex[j]+1)
+        templist.append(df.iloc[ntop5[i], [5]][0])
         i = i+1
         dishes_details.append(templist)
     return dishes_details

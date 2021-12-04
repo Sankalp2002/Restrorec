@@ -6,7 +6,7 @@
 {% load crispy_forms_tags %}
 <br> <br>
 <div class="container">
-    <h3> Choose a Restaurant </h3>
+    <h3 class="whiteh3"> Choose a Restaurant </h3>
     <form class="form-group" action="{% url 'Reco:showRest' %}" method="POST">
         {% csrf_token %}
         <select name="restaurant" id="select_restaurant" class="form-control" style="width: 20rem;">
