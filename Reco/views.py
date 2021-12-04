@@ -349,7 +349,7 @@ def model2(selected_dish, request):
             if food[4] == user[3]:
                 tempscore = tempscore + 0.2
             if food[3] == user[2]:
-                tempscore = tempscore + 0.2
+                tempscore = tempscore + 0.5
             if food[2][0:3] == user[1][0:3]:
                 tempscore = tempscore + 1
             fing = food[1].split(', ')
