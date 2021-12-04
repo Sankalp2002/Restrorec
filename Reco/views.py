@@ -23,55 +23,6 @@ from django.contrib.auth import authenticate, login, logout
 # from django.conf import settings
 # from settings import STATIC_DIR
 # Create your views here.
-
-def load_rest():
-    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
-    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
-    df_rest.columns = ['Name', 'Rating',
-                       'Cuisine', 'Address', 'No. of Ratings']
-    rest_list = df_rest.values.tolist()
-    item_list = df_item.values.tolist()
-
-    for row in rest_list:
-        Restaurant.objects.get_or_create(
-            name=row[0], rating=row[1], cuisine=row[2], address=row[3], totalRatings=row[4])
-
-def load_items():
-    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
-    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
-    df_rest.columns = ['Name', 'Rating',
-                       'Cuisine', 'Address', 'No. of Ratings']
-    rest_list = df_rest.values.tolist()
-    item_list = df_item.values.tolist()
-
-    for row in item_list:
-        t = row[6]
-        if t < 24:
-            menuItem.objects.get_or_create(
-                category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t)
-        else:
-            menuItem.objects.get_or_create(
-                category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t-1)
-
-def load_item_vectors():
-    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
-    allitems = menuItem.objects.all()
-    for items in allitems:
-        link=items.link
-        food=list(df_food.iloc[link])
-        ing2=food[1]
-        ing = ing2.split(', ')
-        features=[]
-        for i in ing:
-            features.append(i)
-        if food[3]!='-1':
-            features.append(food[3])
-        if food[5]!='-1':
-            features.append(food[5])
-        items.features=features
-        items.save()
-
-
 def foodfun(fname):
     df = pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
     food = [fname, -1, -1, -1, -1, -1]
@@ -101,6 +52,59 @@ def foodfun(fname):
         return top_index
     else:
         return -1
+
+def load_rest():
+    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
+    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
+    df_rest.columns = ['Name', 'Rating',
+                       'Cuisine', 'Address', 'No. of Ratings']
+    rest_list = df_rest.values.tolist()
+    item_list = df_item.values.tolist()
+
+    for row in rest_list:
+        Restaurant.objects.get_or_create(
+            name=row[0], rating=row[1], cuisine=row[2], address=row[3], totalRatings=row[4])
+
+def load_items():
+    df_item = pd.read_csv('../RESTROREC/static/datasets/all_items.csv')
+    df_rest = pd.read_csv('../RESTROREC/static/datasets/all_rest.csv')
+    df_rest.columns = ['Name', 'Rating',
+                       'Cuisine', 'Address', 'No. of Ratings']
+    rest_list = df_rest.values.tolist()
+    item_list = df_item.values.tolist()
+
+    for row in item_list:
+        print(foodfun(row[1]))
+        t = row[6]
+        if t < 24:
+            menuItem.objects.get_or_create(
+                category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t,link=foodfun(row[1]))
+        else:
+            menuItem.objects.get_or_create(
+                category=row[0], name=row[1], price=row[2], description=row[3], diet=row[4], rating=row[5], restaurantId_id=t-1,link=foodfun(row[1]))
+
+def load_item_vectors():
+    df_food= pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
+    allitems = menuItem.objects.all()
+    for items in allitems:
+        link=items.link
+        if link!=-1:
+            food=list(df_food.iloc[link])
+            ing2=food[1]
+            ing = ing2.split(', ')
+            feature=[]
+            for i in ing:
+                if i!='':
+                    feature.append(i)
+            if food[3]!='-1':
+                feature.append(food[3])
+            if food[5]!='-1':
+                feature.append(food[5])
+            items.features=feature
+            items.save()
+
+
+
 
 
 def getUser(request):
@@ -510,7 +514,7 @@ def model3(request):
             if food[4] == user[3]:                   # state
                 tempscore = tempscore + 0.3*(maxsim-minsim)
             if food[2] == user[1] and user[1][0:3] == "veg":
-                tempscore = tempscore + 10*(maxsim-minsim)+1
+                tempscore = tempscore + 10*(maxsim-minsim)+2
             elif food[2] == user[1] and user[1][0:3] == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
@@ -539,7 +543,7 @@ def model3(request):
     # loop to append dishes if frequency is 3
 
     for name in dishname:
-        if(newname.count(name) < 2):
+        if(newname.count(name) < 1):
             newname.append(name)
             newntop5.append(ntop20[i])
         i = i+1
@@ -562,7 +566,6 @@ def model3(request):
     for i in randlist:
         ranlist50.append([i, vector[i][1], df.iloc[i, [5]][0],
                           df.iloc[i, [8]][0], df.iloc[i, [4]][0]])
-    # print(ranlist50)
     maxsim = score_series[100][1]
     minsim = score_series[499][1]
     maxcount = np.max([i[3] for i in ranlist50])
@@ -587,7 +590,7 @@ def model3(request):
 
         tempscore = 0
         if (user[1] == "veg") and (diet == user[1]):
-            tempscore = tempscore + 1
+            tempscore = tempscore + 2
         elif diet == user[1] and user[1][0:3] == "non":
             tempscore = tempscore + 0.4*(maxsim-minsim)
 
@@ -658,7 +661,7 @@ def model3(request):
             if food[4] == user[3]:
                 tempscore = tempscore + 0.3*(maxsim-minsim)
             if (food[2]).lower() == user[1] and (user[1]).lower() == "veg":
-                tempscore = tempscore + 10*(maxsim-minsim)
+                tempscore = tempscore + 10*(maxsim-minsim)+1
             elif (food[2]).lower() == user[1] and (user[1][0:3]).lower() == "non":
                 tempscore = tempscore + 0.4*(maxsim-minsim)
         temprating = df.iloc[nindex, [5]][0]
@@ -722,11 +725,9 @@ def showModels(request):
     if request.method == 'POST':
         m=request.POST.get('model')
         if m=='3':
-            # print("Model3")
             dishes=model3(request)
             return render(request, 'display.html', {'dishes': dishes, 'User': request.user})
         else:
-            # print("Model12")
             rest = Restaurant.objects.all()
         return render(request, 'main.html', {'rest': rest,'m':m})
     else:
@@ -854,8 +855,6 @@ def rateView(request):
     if request.method == 'POST':
         orderIds = request.POST.getlist('ids')
         ratings = request.POST.getlist('ratings')
-        # print(orderIds)
-        # print(ratings)
         user = getUserObj(request)
         recent = []
         tenratings=user.pastRatings
@@ -873,7 +872,6 @@ def rateView(request):
             item.save()
             featDict = user.features
             feat = item.features
-            print(featDict)
             for f in feat:
                 if f in featDict:
                     pre_rating = featDict[f][0]
@@ -896,8 +894,6 @@ def rateView(request):
             user.positiveFeature = posList
             user.negativeFeature = negList
             user.save()
-        # print(posList)
-        # print(negList)
         tenratings=tenratings[-10:]
         user.pastRatings=tenratings
         user.recentfeature = recent
