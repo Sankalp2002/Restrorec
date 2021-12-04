@@ -6,8 +6,29 @@
 <br> <br>
 <div class="container">
     <!-- <h3> Logged in as User.username </h3> -->
-    <h3> Our recommendations for you:</h3>
+    <h3 class="whiteh3"> Our recommendations for you:</h3>
     <div>
+        <div class="tablecontainer">
+            {% for t in dishes %}
+                <div class="rowcontainer">
+                    <div class="rowitem"><input type="checkbox" name="order" value="{{t.7}}" id="{{t.7}}">
+                    </div>
+                    <div class="rowitem"><label for="{{t.7}}">{{t.0}}</label>
+                    </div>
+                    <div class="rowitem">{{t.5}}
+                    </div>
+                    <div class="rowitem">{{t.2}}
+                    </div>
+                    <div class="rowitem">{{t.3}}
+                    </div>
+                    <div class="rowitem">{{t.8}}
+                    </div>
+                    <div class="rowitem">{{t.6}}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
         <form class="form-group" action="{% url 'Reco:orderView' %}" method="POST">
             {% csrf_token %}
         <table class="table table-light table-hover table-bordered table-striped">
