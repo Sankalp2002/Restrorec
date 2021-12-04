@@ -27,4 +27,5 @@ urlpatterns = [
     path('login', rviews.loginView, name='loginView'),
     path('logout/',rviews.logoutView,name='logoutView'),
     path('home/<str:pid>',rviews.errorview,name='errorview'),
+    path('', rviews.showModels, name='showModels'),
 ]

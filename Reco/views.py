@@ -74,7 +74,6 @@ def load_items():
     item_list = df_item.values.tolist()
 
     for row in item_list:
-        print(foodfun(row[1]))
         t = row[6]
         if t < 24:
             menuItem.objects.get_or_create(
@@ -794,13 +793,13 @@ def registerView(request):
             docB.save()
             registered = True
             m = "Registration Successful"
-            return HttpResponseRedirect(reverse('loginView'))
+            return HttpResponseRedirect(reverse('loginView'),{'m':m})
         else:
             print(userRegisterFormA.errors, userRegisterFormB.errors)
     else:
         formA = userRegisterFormA()
         formB = userRegisterFormB()
-        return render(request, 'register.html', {'formA': formA, 'formB': formB})
+        return render(request, 'register.html', {'formA': formA, 'formB': formB,'registered':registered})
 
 
 def loginView(request):

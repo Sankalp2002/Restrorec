@@ -5,21 +5,25 @@
 {% block content %}
 {% load crispy_forms_tags %}
 <br> <br>
-<div class="container">
-    <h3 class="whiteh3"> Choose a Recommendation Model </h3>
-    <form class="form-group" action="{% url 'showModels' %}" method="POST">
-        {% csrf_token %}
-        <div class="select">
-        <select name="model" id="model" class="mySelectArrow" style="width: 50rem;">
+<div class="limiter">
+    <div class="container-login100">
+        <div class="wrap-login100">
+            <h3 class="whiteh3"> Choose a Recommendation Model </h3>
+            <form class="form-group" action="{% url 'showModels' %}" method="POST">
+                {% csrf_token %}
+                <div class="select">
+                <select name="model" id="model" class="mySelectArrow" style="width: 50rem;">
 
-            <option value=1>Recommendations based on chosen menu item.</option>
-            <option value=2>Recommendations based on your profile and chosen menu item.</option>
-            <option value=3>Recommendations based on your profile and order history.</option>
+                    <option value=1>Recommendations based on chosen menu item.</option>
+                    <option value=2>Recommendations based on your profile and chosen menu item.</option>
+                    <option value=3>Recommendations based on your profile and order history.</option>
 
-        </select>
+                </select>
+            </div>
+                <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;">Submit</button>
+            </form>
+        </div>
     </div>
-        <button class="btn btn-primary btn-block" type="submit" style="width: 12rem; margin-top: 1rem;">Submit</button>
-    </form>
 </div>
 
 {% endblock %}

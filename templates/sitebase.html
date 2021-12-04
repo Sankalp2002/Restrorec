@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+{% load static %}
 {% load crispy_forms_tags %}
 <html lang="en">
 <head>
@@ -16,9 +16,29 @@
 
     <style>
     @font-face{
-   font-family:MyFont; 
-   src: url(../../static/fonts/Raleway-VariableFont_wght.ttf)
- }
+    font-family:MyFont; 
+    src: url(../../static/assets/fonts/Raleway-VariableFont_wght.ttf)
+    }
+    @font-face {
+      font-family: Poppins-Regular;
+      src: url("../../static/assets/fonts/poppins/Poppins-Regular.ttf");
+    }
+
+    @font-face {
+      font-family: Poppins-Bold;
+      src: url("../../static/assets/fonts/poppins/Poppins-Bold.ttf");
+    }
+
+    @font-face {
+      font-family: Poppins-Medium;
+      src: url("../../static/assets/fonts/poppins/Poppins-Medium.ttf");
+    }
+
+    @font-face {
+      font-family: Montserrat-Bold;
+      src: url("../../static/assets/fonts/montserrat/Montserrat-Bold.ttf");
+    }
+
 
     .row{
         padding: 5px;
@@ -56,6 +76,7 @@
 }
 
 body{
+  font-family: Poppins-Regular, sans-serif;
   background-image: url(../../static/images/img5.png);
   background-color: #f3f5f9;
   background-size:cover;
@@ -71,13 +92,15 @@ body .bgi{
     background-color: #ff0018!important;
 }
 .whiteh3{
+  font-family: Poppins-Regular, sans-serif;
   color: white;
+  padding-bottom: 1em;
 }
 select.mySelectArrow{
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background: #36ca94;
+    background: #2596be;
     color: #fff;
     width: 100%;
     padding: 10px 20px;
@@ -117,15 +140,15 @@ select.mySelectArrow option {
 .rowcontainer{
   font-family: 'Raleway',MyFont;
   width: 100%;
-  height: 3em;
+  height: 4em;
   display: flex;
   justify-content: space-around;
-  align-items: left;
+  align-items: center;
   background-color:#dfdfdf ;
   padding: 0.2em;
   flex-basis:auto;
   vertical-align: middle;
-  border-radius: round;
+  border-radius: 10px;
 }
 .rowhead{
   font-family: 'Raleway',MyFont;
@@ -149,7 +172,7 @@ select.mySelectArrow option {
   align-items: center;
   flex-basis:auto;
   flex-grow: 4;
-  margin: 0.25em;
+  margin: 0.50em;
   vertical-align: middle;
 }
 .mitem{
@@ -161,7 +184,7 @@ select.mySelectArrow option {
   align-items: center;
   flex-basis:auto;
   flex-grow: 4;
-  margin: 0.25em;
+  margin: 0.50em;
   vertical-align: middle;
 }
 .litem{
@@ -173,12 +196,45 @@ select.mySelectArrow option {
   align-items: center;
   flex-basis:auto;
   flex-grow: 4;
-  margin: 0.25em;
+  margin: 0.50em;
   vertical-align: middle;
 }
 .checkbo{
   width: 1.5em;
   height: 1.5em;
+}
+.limiter {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.container-login100 {
+  width: 100%;
+  min-height: 100vh;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+}
+.wrap-login100 {
+  width: 1000px;
+  background: #343a40;
+  border-radius: 10px;
+  overflow: hidden;
+  color: white;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 100px 130px 33px 95px;
 }
 .wrapper{
   display: flex;
