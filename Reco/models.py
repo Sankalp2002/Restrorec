@@ -80,7 +80,7 @@ class RecoUser(models.Model):
     features=models.JSONField(default=dict)
     recentfeature = models.JSONField(default=list)
     pastRatings = models.JSONField(default=list)
-
+    satList = models.JSONField(default=list)
     class Meta:
         permissions=(
         )

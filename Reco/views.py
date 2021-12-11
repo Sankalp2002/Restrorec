@@ -896,6 +896,12 @@ def rateView(request):
         tenratings=tenratings[-10:]
         user.pastRatings=tenratings
         user.recentfeature = recent
+        satlist=user.satList
+        currSatisfaction=0
+        if len(tenratings)>0:
+            currSatisfaction=round(sum(tenratings)/len(tenratings),1)
+            satlist.append(currSatisfaction)
+            user.satList=satlist
         user.save()
         return HttpResponseRedirect(reverse('showModels'))
     else:
