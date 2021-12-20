@@ -23,6 +23,11 @@ from django.contrib.auth import authenticate, login, logout
 # from django.conf import settings
 # from settings import STATIC_DIR
 # Create your views here.
+def setRatingCount():
+    allitems = menuItem.objects.all()
+    for item in allitems:
+        item.numRatings+=random.randint(10, 30)
+        item.save()
 def foodfun(fname):
     df = pd.read_csv('../RESTROREC/static/datasets/indian_food2.csv')
     food = [fname, -1, -1, -1, -1, -1]
@@ -862,7 +867,7 @@ def rateView(request):
             tenratings.append(int(ratings[i]))
             item = menuItem.objects.get(itemId=id)
             item.rating = round(
-                item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1), 1)
+                0.90*item.rating+(int(ratings[i])-item.rating)/(item.numRatings+1), 1)
             item.numRatings = item.numRatings+1
             itemfeat = item.features
             for j in itemfeat:
@@ -875,7 +880,7 @@ def rateView(request):
                 if f in featDict:
                     pre_rating = featDict[f][0]
                     pre_freq = featDict[f][1]
-                    new_rating = pre_rating + (int(ratings[i])-pre_rating)/(pre_freq+1)
+                    new_rating = 0.9*pre_rating + (int(ratings[i])-pre_rating)/(pre_freq+1)
                     featDict.update({f:[int(new_rating),pre_freq+1]})
                 else:
                     featDict.update({f:[int(ratings[i]),1]})
