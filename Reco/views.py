@@ -740,6 +740,7 @@ def showModels(request):
             load_rest()
             load_items()
             load_item_vectors()
+            setRatingCount()
         return render(request, 'chooseModel.html')
 
 @login_required
